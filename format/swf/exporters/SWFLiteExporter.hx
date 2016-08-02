@@ -53,6 +53,7 @@ import lime.graphics.ImageBuffer;
 import lime.utils.UInt8Array;
 import lime.math.Vector2;
 import lime.math.color.RGBA;
+import lime.math.color.ARGB;
 
 
 class SWFLiteExporter {
@@ -220,86 +221,84 @@ class SWFLiteExporter {
 		var alphaByteArray = null;
 		var byteArray = null;
 		var type = null;
-		
-		if ( Std.is ( tag, TagDefineBitsLossless2 )) {
-		 var colorArray = new Map<Int, RGBA>();
-		 
-		 var data:TagDefineBitsLossless2 = cast tag;
-		 var transparent = (data.level > 1);
 
-		 var buffer = data.zlibBitmapData;
-		 buffer.uncompress ();
-		 buffer.position = 0;
-		 
-		 if (data.bitmapFormat == BitmapFormat.BIT_8) {	
-			 var index = 0;
-			 
-			 for (i in 0...data.bitmapColorTableSize ) {
-			 
-				 var color:RGBA = new RGBA(); 
-			 
-				 color.r =  buffer.readUnsignedByte ();
-				 color.g =  buffer.readUnsignedByte ();
-				 color.b =  buffer.readUnsignedByte ();
-				 if (transparent) color.a = buffer.readUnsignedByte();
-			 
-				 colorArray[i] = color;
-			 }
-			 
-			 var values = Bytes.alloc ((data.bitmapWidth + 1) * data.bitmapHeight);
-			 var indexImage = 0 ;
-	 
-			 index = 0;
-			 for ( y in 0...data.bitmapHeight){
-				 for ( x in 0...data.bitmapWidth){
-					 
-					 
-					 index = buffer.readUnsignedByte ();
-					 
-					 if (index >= 0 && index < data.bitmapColorTableSize) {
-						 
-						 values.set( indexImage, colorArray[index]);
-						 
-					 } else {
-						 
-						 values.set( indexImage, 0);
-
-						 
-					 }
-					 indexImage++;
-				 }
-			 }
-			 
-			 var png = new List ();
-			 png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColGrey ( transparent ), interlaced: false } ));
-			 png.add (CData (Deflate.run (values)));
-			 png.add (CEnd);
-			
-			 var output = new BytesOutput ();
-			 var writer = new Writer (output);
-			 writer.write (png);
-			 
-			 byteArray = ByteArray.fromBytes (output.getBytes ());
-			 type = BitmapType.PNG;
-			 
-						 
-		 } else {
-			 
-				 var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, transparent);
-				 
-				 bitmapData.image.buffer.premultiplied = false;
-				 bitmapData.setPixels (bitmapData.rect, buffer);
-				 bitmapData.image.buffer.premultiplied = true;
-				 bitmapData.image.premultiplied = false;
-				 
-				 byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
-				 type = BitmapType.PNG;
-			 
-			 }
-	 
-	 }else if (Std.is (tag, TagDefineBitsLossless)) {
+	if (Std.is (tag, TagDefineBitsLossless)) {
 			var data:TagDefineBitsLossless = cast tag;
+			if ( Std.is ( tag, TagDefineBitsLossless2 )) {
 			
+				var data:TagDefineBitsLossless2 = cast tag;
+			 
+			 	var colorArray = new Map<Int, ARGB>();			 
+			var colorTable = new Array <Int> ();
+			 	var buffer = data.zlibBitmapData;
+		 		buffer.uncompress ();
+				buffer.position = 0;
+			 
+			 if (data.bitmapFormat == BitmapFormat.BIT_8) {	
+				 var index:Int = 0;
+				 
+				 for (i in 0...data.bitmapColorTableSize ) {
+				 
+					 var color:ARGB = new ARGB(); 
+				 var colorFinal:ARGB = new ARGB();
+				 color.a =   buffer.readUnsignedByte ();
+				 color.b =  buffer.readUnsignedByte ();
+				 color.g =  buffer.readUnsignedByte ();
+					 color.r = buffer.readUnsignedByte ();
+
+					 colorTable.push ((color.a << 24) + (color.b << 16) + (color.g << 8) +color.r  );
+				 }
+				 
+				 var values = Bytes.alloc ((data.bitmapWidth  +1)* data.bitmapHeight *4);
+				 var indexImage = 0 ;
+		 
+		 	 	 buffer.position = 0;
+				 index = 0;
+				 
+				 for ( y in 0...data.bitmapHeight ){
+					 indexImage =  y*data.bitmapWidth*4+y ;					
+					 values.set ( indexImage,0 );	
+				 	 indexImage +=1;
+			
+					 for ( x in 0...data.bitmapWidth  ){
+						 index =  buffer.readUnsignedByte ();	
+						 trace ( index );
+						 if (index >= 0 && index < colorTable.length) {
+							 
+							 values.setInt32( x *4 + indexImage  ,colorTable[index] ) ;		
+							 
+						 } 
+					 }
+				 }
+				
+				 var png = new List ();
+				 png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColTrue ( true ), interlaced: false } ));
+				 png.add (CData (Deflate.run(values)));
+				 png.add (CEnd);
+				
+				 var output = new BytesOutput ();
+				 var writer = new Writer (output);
+				 writer.write (png);
+				 
+				 byteArray = ByteArray.fromBytes (output.getBytes ());
+				 type = BitmapType.PNG;
+				 
+							 
+			 } else {
+				 
+					 var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, true);
+					 
+					 bitmapData.image.buffer.premultiplied = false;
+					 bitmapData.setPixels (bitmapData.rect, buffer);
+					 bitmapData.image.buffer.premultiplied = true;
+					 bitmapData.image.premultiplied = false;
+					 
+					 byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
+					 type = BitmapType.PNG;
+				 
+				 }
+		 
+		 } else {
 			var buffer = data.zlibBitmapData;
 			buffer.uncompress ();
 			buffer.position = 0;
@@ -355,7 +354,7 @@ class SWFLiteExporter {
 				type = BitmapType.PNG;
 				
 			}
-			
+			}
 			
 		} else if (Std.is (tag, TagDefineBitsJPEG2)) {
 			
