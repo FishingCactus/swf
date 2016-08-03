@@ -228,44 +228,42 @@ class SWFLiteExporter {
 			
 				var data:TagDefineBitsLossless2 = cast tag;
 			 
-			 	var colorArray = new Map<Int, ARGB>();			 
-			var colorTable = new Array <Int> ();
+ 				var colorTable = new Array <Int> ();
 			 	var buffer = data.zlibBitmapData;
+				
 		 		buffer.uncompress ();
 				buffer.position = 0;
 			 
 			 if (data.bitmapFormat == BitmapFormat.BIT_8) {	
-				 var index:Int = 0;
 				 
 				 for (i in 0...data.bitmapColorTableSize ) {
 				 
-					 var color:ARGB = new ARGB(); 
-				 var colorFinal:ARGB = new ARGB();
-				 color.a =   buffer.readUnsignedByte ();
-				 color.b =  buffer.readUnsignedByte ();
-				 color.g =  buffer.readUnsignedByte ();
+				 	 var color:ARGB = new ARGB(); 
+
+					 color.a = buffer.readUnsignedByte ();
+					 color.b = buffer.readUnsignedByte ();
+					 color.g = buffer.readUnsignedByte ();
 					 color.r = buffer.readUnsignedByte ();
 
-					 colorTable.push ((color.a << 24) + (color.b << 16) + (color.g << 8) +color.r  );
+					 colorTable.push ((color.a << 24) + (color.b << 16) + (color.g << 8) + color.r);
 				 }
 				 
-				 var values = Bytes.alloc ((data.bitmapWidth  +1)* data.bitmapHeight *4);
+				 var values = Bytes.alloc ((data.bitmapWidth  + 1)* data.bitmapHeight * 4);
 				 var indexImage = 0 ;
+				 var index:Int = 0;
 		 
-		 	 	 buffer.position = 0;
-				 index = 0;
-				 
 				 for ( y in 0...data.bitmapHeight ){
-					 indexImage =  y*data.bitmapWidth*4+y ;					
-					 values.set ( indexImage,0 );	
-				 	 indexImage +=1;
+				
+					 indexImage =  y * data.bitmapWidth * 4 + y ;					
+					 values.set (indexImage, 0);	
+				 	 indexImage += 1;
 			
 					 for ( x in 0...data.bitmapWidth  ){
+						 
 						 index =  buffer.readUnsignedByte ();	
-						 trace ( index );
 						 if (index >= 0 && index < colorTable.length) {
 							 
-							 values.setInt32( x *4 + indexImage  ,colorTable[index] ) ;		
+							 values.setInt32( x * 4 + indexImage, colorTable[index] ) ;		
 							 
 						 } 
 					 }
