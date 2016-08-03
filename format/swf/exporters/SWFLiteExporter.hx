@@ -54,7 +54,6 @@ import lime.utils.UInt8Array;
 import lime.math.Vector2;
 import lime.math.color.RGBA;
 
-
 class SWFLiteExporter {
 	
 	
@@ -87,6 +86,7 @@ class SWFLiteExporter {
 		for (tag in data.tags) {
 			
 			if (Std.is (tag, TagSymbolClass)) {
+				
 				for (symbol in cast (tag, TagSymbolClass).symbols) {
 					
 					processSymbol (symbol);
@@ -239,7 +239,7 @@ class SWFLiteExporter {
 				 
 				 for (i in 0...data.bitmapColorTableSize ) {
 				 
-				 	 var color:ARGB = new ARGB(); 
+				 	 var color:RGBA = new RGBA(); 
 
 					 color.a = buffer.readUnsignedByte ();
 					 color.b = buffer.readUnsignedByte ();
