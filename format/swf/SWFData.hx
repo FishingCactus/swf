@@ -971,10 +971,8 @@ import format.swf.utils.BitArray;
 		
 		#if display
 		return 0;
-		#elseif flash
-		return this.length;
 		#else
-		@:privateAccess return this.__length;
+		return this.length;
 		#end
 		
 	}
@@ -992,7 +990,6 @@ import format.swf.utils.BitArray;
 			
 		}
 		
-		this.__length = value;
 		#end
 		
 		return value;
