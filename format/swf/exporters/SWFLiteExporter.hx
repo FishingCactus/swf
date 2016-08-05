@@ -36,6 +36,7 @@ import format.swf.tags.TagDefineFont;
 import format.swf.tags.TagDefineFont2;
 import format.swf.tags.TagDefineFont4;
 import format.swf.tags.TagDefineShape;
+import format.swf.tags.TagDefineMorphShape;
 import format.swf.tags.TagDefineSprite;
 import format.swf.tags.TagDefineText;
 import format.swf.tags.TagExportAssets;
@@ -262,10 +263,9 @@ class SWFLiteExporter {
 					 for ( x in 0...data.bitmapWidth  ){
 						 
 						 index =  buffer.readUnsignedByte ();	
-						 if (index >= 0 && index < colorTable.length) {
-							 
 							 values.setInt32( x * 4 + indexImage, colorTable[index] ) ;		
-							 
+						  if (index > colorTable.length) {
+								throw  'index outside bounds' ;
 						 } 
 					 }
 				 }
@@ -367,9 +367,9 @@ class SWFLiteExporter {
 				var image = lime.graphics.format.JPEG.decodeBytes (data.bitmapData, mergeAlphaChannel);
 
 				if( mergeAlphaChannel ){
+					
 					var width = image.width;
 					var height = image.height;
-
 					/* If copy channel supported 8bit texture, does not
 					var alphaBuffer = new ImageBuffer( UInt8Array.fromBytes(alpha), width, height, 8 );
 					var alphaImage = new Image(alphaBuffer);
@@ -389,9 +389,11 @@ class SWFLiteExporter {
 							pixel.a = alpha[srcPosition];
 							pixel.writeUInt8(srcData, srcPosition * 4);
 							srcPosition += 1;
+						
 						}
 					}
 
+					image.buffer.premultiplied = true;
 					alphaByteArray = null;
 					byteArray = lime.graphics.format.PNG.encode( image );
 
@@ -511,6 +513,40 @@ class SWFLiteExporter {
 		
 	}
 	
+	private function addMorphShape ( tag:TagDefineMorphShape) :ShapeSymbol {
+	
+	var symbol = new ShapeSymbol ();
+		symbol.id = tag.characterId;
+		
+		var handler = new ShapeCommandExporter (data);
+		
+		// :: TRICKY 
+		/* The MorphShape are not supported yet, in the swf instance, 
+		they should be rendered. here they are just rendered as shape, 
+		and at the reading just one ratio is viewable, and not a complete
+		animation of the shapes*/
+		
+		 
+//		tag.export (handler,0.3);
+		
+		
+		symbol.commands = handler.commands;
+		for (command in handler.commands) {
+			
+			switch (command) {
+				
+				case BeginBitmapFill (bitmapID, _, _, _):
+					processTag (cast data.getCharacter (bitmapID));
+				
+				default:
+				
+			}
+			
+		}
+		
+		swfLite.symbols.set (symbol.id, symbol);
+		return symbol;
+	}
 	
 	private function addShape (tag:TagDefineShape):ShapeSymbol {
 		
@@ -521,7 +557,6 @@ class SWFLiteExporter {
 		tag.export (handler);
 		
 		symbol.commands = handler.commands;
-		
 		for (command in handler.commands) {
 			
 			switch (command) {
@@ -541,7 +576,6 @@ class SWFLiteExporter {
 		return symbol;
 		
 	}
-	
 	
 	private function addSprite (tag:SWFTimelineContainer, root:Bool = false):SpriteSymbol {
 		
@@ -903,6 +937,10 @@ class SWFLiteExporter {
 			} else if (Std.is (tag, TagDefineShape)) {
 				
 				return addShape (cast tag);
+				
+			} else if ( Std.is ( tag, TagDefineMorphShape )){
+				
+				return addMorphShape (cast tag);
 				
 			} else if (Std.is (tag, TagDefineFont) || Std.is (tag, TagDefineFont4)) {
 				
