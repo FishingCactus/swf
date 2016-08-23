@@ -537,41 +537,6 @@ class SWFLiteExporter {
 		
 	}
 	
-	private function addMorphShape ( tag:TagDefineMorphShape) :ShapeSymbol {
-	
-	var symbol = new ShapeSymbol ();
-		symbol.id = tag.characterId;
-		
-		var handler = new ShapeCommandExporter (data);
-		
-		// :: TRICKY 
-		/* The MorphShape are not supported yet, in the swf instance, 
-		they should be rendered. here they are just rendered as shape, 
-		and at the reading just one ratio is viewable, and not a complete
-		animation of the shapes*/
-		
-		 
-//		tag.export (handler,0.3);
-		
-		
-		symbol.commands = handler.commands;
-		for (command in handler.commands) {
-			
-			switch (command) {
-				
-				case BeginBitmapFill (bitmapID, _, _, _):
-					processTag (cast data.getCharacter (bitmapID));
-				
-				default:
-				
-			}
-			
-		}
-		
-		swfLite.symbols.set (symbol.id, symbol);
-		return symbol;
-	}
-	
 	private function addShape (tag:TagDefineShape):ShapeSymbol {
 		
 		var symbol = new ShapeSymbol ();
@@ -981,17 +946,10 @@ class SWFLiteExporter {
 				
 				return addShape (cast tag);
 				
-<<<<<<< HEAD
-			} else if ( Std.is ( tag, TagDefineMorphShape )){
-				
-				return addMorphShape (cast tag);
-				
-=======
 			} else if (Std.is (tag, TagDefineMorphShape)) {
 
 				return addMorphShape (cast tag);
 
->>>>>>> f73b87853d3d8214850de127caee64a9588b47d5
 			} else if (Std.is (tag, TagDefineFont) || Std.is (tag, TagDefineFont4)) {
 				
 				return addFont (tag);
