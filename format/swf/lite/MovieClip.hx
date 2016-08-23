@@ -755,24 +755,6 @@ class MovieClip extends flash.display.MovieClip {
 
 			if (frameObject.type != FrameObjectType.DESTROY) {
 
-				if (frameObject.id == 0 && frameObject.symbol != __zeroSymbol) {
-
-					displayObject = __objects.get (0);
-
-					if (displayObject != null && displayObject.parent == this) {
-
-						removeChild (displayObject);
-						__SWFDepthData.remove(displayObject);
-						__maskData.remove(displayObject);
-
-					}
-
-					__objects.remove (0);
-					displayObject = null;
-					__zeroSymbol = frameObject.symbol;
-
-				}
-
 				if (!__objects.exists (frameObject.id)) {
 
 					displayObject = __createObject (frameObject);
@@ -788,7 +770,7 @@ class MovieClip extends flash.display.MovieClip {
 
 					displayObject = __objects.get (frameObject.id);
 
-					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER ){
+					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER || frameObject.type == FrameObjectType.CREATE ){
 
 						var oldObject : DisplayObject = displayObject;
 
