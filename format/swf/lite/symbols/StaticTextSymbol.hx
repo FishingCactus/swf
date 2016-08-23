@@ -9,6 +9,7 @@ class StaticTextSymbol extends SWFSymbol {
 	
 	public var matrix:Matrix;
 	public var records:Array<StaticTextRecord>;
+	public var shapeIsScaled : Bool;
 	
 	
 	public function new () {

@@ -34,6 +34,7 @@ import format.swf.tags.TagDefineButton2;
 import format.swf.tags.TagDefineEditText;
 import format.swf.tags.TagDefineFont;
 import format.swf.tags.TagDefineFont2;
+import format.swf.tags.TagDefineFont3;
 import format.swf.tags.TagDefineFont4;
 import format.swf.tags.TagDefineShape;
 import format.swf.tags.TagDefineMorphShape;
@@ -364,7 +365,28 @@ class SWFLiteExporter {
 				alpha.uncompress ();
 				alpha.position = 0;
 
-				var image = lime.graphics.format.JPEG.decodeBytes (data.bitmapData, mergeAlphaChannel);
+				var bytes:haxe.io.Bytes = data.bitmapData;
+
+				// :HACK: as per specification:
+				// Before version 8 of the SWF file format, SWF files could contain an erroneous header of 0xFF, 0xD9, 0xFF, 0xD8  before the JPEG SOI marker.
+
+				if (data.version < 8) {
+					
+					var byteArray = data.bitmapData;
+					for( index in 0...byteArray.length - 3 ) {
+						if (
+							byteArray[index + 1] == 0xD9
+							&& byteArray[index + 3] == 0xD8
+							&& byteArray[index] == 0xFF
+							&& byteArray[index + 2] == 0xFF
+							) {
+								bytes = bytes.sub(index + 2, byteArray.length - index - 2);
+						}
+					}
+					
+				}
+
+				var image = lime.graphics.format.JPEG.decodeBytes (bytes, mergeAlphaChannel);
 
 				if( mergeAlphaChannel ){
 					
@@ -825,6 +847,7 @@ class SWFLiteExporter {
 		symbol.id = tag.characterId;
 		
 		var records = [];
+		var fontIsScaled : Bool = false;
 		
 		for (record in tag.records) {
 			
@@ -840,6 +863,10 @@ class SWFLiteExporter {
 				processTag (defineFont);
 				font = cast swfLite.symbols.get (record.fontId);
 				
+				if (Std.is(defineFont, TagDefineFont3))
+				{
+					fontIsScaled = true;
+				}
 			}
 			
 			if (record.hasColor) textRecord.color = record.textColor;
@@ -887,6 +914,7 @@ class SWFLiteExporter {
 		matrix.ty *= (1 / 20);
 		
 		symbol.matrix = matrix;
+		symbol.shapeIsScaled = fontIsScaled;
 		
 		swfLite.symbols.set (symbol.id, symbol);
 		

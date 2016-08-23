@@ -20,6 +20,7 @@ import openfl.Assets;
 
 	public static var instances = new Map<String, SWFLite> ();
 	public static var fontAliases = new Map<String, String>();
+	public static var defaultInstance(get,null) : SWFLite;
 
 	public var classes : Map<String, Class<Dynamic>>;
 	public var classes_id : Map<Int, Class<Dynamic>>;
@@ -27,7 +28,6 @@ import openfl.Assets;
 	public var root:SpriteSymbol;
 	public var symbols:Map <Int, SWFSymbol>;
 	public var symbolClassNames:Map <String, SWFSymbol>;
-
 
 	public function new () {
 		
@@ -214,5 +214,9 @@ import openfl.Assets;
 		return swf_lite;
 	}
 	
+	public static function get_defaultInstance() {
+		return instances.get("lib/graphics/graphics.dat");
+	}
+
 	
 }

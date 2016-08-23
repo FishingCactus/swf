@@ -51,7 +51,8 @@ class MovieClip extends flash.display.MovieClip {
 	@:noCompletion private var __timeElapsed:Int;
 	@:noCompletion private var __zeroSymbol:Int;
 	@:noCompletion private var __drawingBitmapData:Bool;
-	
+	@:noCompletion private var __targetFrame:Int;
+
 	#if flash
 	@:noCompletion private var __currentFrame:Int;
 	@:noCompletion private var __previousTime:Int;
@@ -158,35 +159,16 @@ class MovieClip extends flash.display.MovieClip {
 	
 	public override function gotoAndPlay (frame:#if flash flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 
-		play ();			
-		var target = __getFrame (frame);
-		
-		do{
-			__currentFrame = target;
-			__updateFrame ();
-			
-			__playing = true;
-		} while(target != __currentFrame);
-			
+		__goto(frame, scene);
 	}
 	
 	
 	public override function gotoAndStop (frame:#if flash flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 
-		play ();
-		var target = __getFrame (frame);
-		
-		do{
-			__currentFrame = target;
-			__updateFrame ();
-			
-			__playing = true;
-		} while(target != __currentFrame);
-		
-		stop ();
-			
+		if(__goto(frame, scene)) {
+			stop ();
+		}
 	}
-	
 	
 	public override function nextFrame ():Void {
 		
@@ -547,7 +529,33 @@ class MovieClip extends flash.display.MovieClip {
 		
 		return index;
 	}
-	
+
+	@:noCompletion private function __goto (frame:#if flash flash.utils.Object #else Dynamic #end, scene:String = null):Bool	{
+
+		if(__targetFrame == null) {
+
+			play ();
+			__targetFrame = __getFrame (frame);
+
+			do {
+				__currentFrame = __targetFrame;
+				__updateFrame ();
+
+				__playing = true;
+			} while (__targetFrame != __currentFrame);
+
+			__targetFrame = null;
+
+			return true;
+		}
+		else {
+
+			__targetFrame = __getFrame (frame);
+
+			return false;
+		}
+
+	}
 	
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
 		
@@ -566,10 +574,13 @@ class MovieClip extends flash.display.MovieClip {
 			if (Std.is (displayObject, DynamicTextField)) {
 				
 				dynamicTextField = cast displayObject;
-				
-				displayObject.x += dynamicTextField.symbol.x;
-				displayObject.y += dynamicTextField.symbol.y #if flash + 4 #end;
-				
+
+				var mat = frameObject.matrix;
+				var x = dynamicTextField.symbol.x;
+				var y = dynamicTextField.symbol.y;
+
+				displayObject.x += mat.a * x + mat.c * y;
+				displayObject.y += mat.b * x + mat.d * y #if flash + 4 #end;
 			}
 			
 		}
@@ -607,6 +618,10 @@ class MovieClip extends flash.display.MovieClip {
 					case GlowFilter (color, alpha, blurX, blurY, strength, quality, inner, knockout):
 						
 						filters.push (new GlowFilter (color, alpha, blurX, blurY, strength, quality, inner, knockout));
+					
+					case GradientGlowFilter (distance, angle, colors, alphas, ratios, blurX, blurY, strength, quality, type, knockout):
+						
+						filters.push (new GradientGlowFilter (distance, angle, colors, alphas, ratios, blurX, blurY, strength, quality, type, knockout));
 					
 				}
 				

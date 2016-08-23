@@ -72,7 +72,6 @@ class Frame
 					// An entirely new character is placed at this depth.
 					frameObject.characterId = tag.characterId;
 					frameObject.lastModifiedAtIndex = tagIndex;
-					frameObject.placedAtIndex = tagIndex;
 				}
 			}
 		} else {

@@ -1,5 +1,6 @@
 ﻿package format.swf.data.filters;
 
+import format.swf.exporters.core.FilterType;
 import format.swf.SWFData;
 import format.swf.utils.ColorUtils;
 import format.swf.utils.StringUtils;
@@ -74,6 +75,38 @@ class FilterGradientGlow extends Filter implements IFilter
 		return new BitmapFilter ();
 		#end
 		#end
+	}
+	
+	override private function get_type():FilterType {
+		var gradientGlowColors:Array<Int> = [];
+		var gradientGlowAlphas:Array<Float> = [];
+		var gradientGlowRatios:Array<Float> = [];
+		for (i in 0...numColors) {
+			gradientGlowColors.push(ColorUtils.rgb(gradientColors[i]));
+			gradientGlowAlphas.push(ColorUtils.alpha(gradientColors[i]));
+			gradientGlowRatios.push(gradientRatios[i]);
+		}
+		
+		var filterType:BitmapFilterType;
+		
+		if(onTop) {
+			filterType = BitmapFilterType.FULL;
+		} else {
+			filterType = (innerShadow) ? BitmapFilterType.INNER : BitmapFilterType.OUTER;
+		}
+		return GradientGlowFilter(
+			distance,
+			angle * 180 / Math.PI,
+			gradientGlowColors,
+			gradientGlowAlphas,
+			gradientGlowRatios,
+			blurX,
+			blurY,
+			strength,
+			passes,
+			filterType,
+			knockout
+			);
 	}
 	
 	override public function parse(data:SWFData):Void {
