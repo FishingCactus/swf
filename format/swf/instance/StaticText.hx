@@ -78,7 +78,7 @@ class StaticText extends Shape {
 	
 	private function renderGlyph (font:TagDefineFont, character:Int, scale:Float, offsetX:Float, offsetY:Float):Void {
 		
-		var handler = new ShapeCommandExporter (data);
+		var handler = new ShapeCommandExporter ();
 		font.export (handler, character);
 		
 		for (command in handler.commands) {

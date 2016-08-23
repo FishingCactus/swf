@@ -21,9 +21,9 @@ class ShapeCommandExporter extends DefaultShapeExporter {
 	public var commands:Array<ShapeCommand>;
 	
 	
-	public function new (swf:SWFTimelineContainer) {
+	public function new () {
 		
-		super (swf);
+		super ();
 		
 		commands = new Array<ShapeCommand> ();
 		

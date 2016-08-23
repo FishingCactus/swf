@@ -19,6 +19,7 @@ class FrameObject {
 	public var symbol:Int;
 	public var type:FrameObjectType;
 	public var blendMode: openfl.display.BlendMode;
+	public var ratio:Float;
 
 
 	public function new () {

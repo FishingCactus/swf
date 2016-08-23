@@ -195,7 +195,7 @@ class SWFShape
 		// Create edge maps
 		createEdgeMaps();
 		// If no handler is passed, default to DefaultShapeExporter (does nothing)
-		if (handler == null) { handler = new DefaultShapeExporter(null); }
+		if (handler == null) { handler = new DefaultShapeExporter(); }
 		// Let the doc handler know that a shape export starts
 		handler.beginShape();
 		// Export fills and strokes for each group separately

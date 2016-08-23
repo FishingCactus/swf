@@ -12,10 +12,7 @@ import flash.geom.Matrix;
 
 class DefaultShapeExporter implements IShapeExporter
 {
-	private var swf:SWFTimelineContainer;
-	
-	public function new(swf:SWFTimelineContainer) {
-		this.swf = swf;
+	public function new() {
 	}
 	
 	public function beginShape():Void {}

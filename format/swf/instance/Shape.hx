@@ -16,7 +16,7 @@ class Shape extends flash.display.Shape {
 		
 		if (tag != null) {
 			
-			var handler = new ShapeCommandExporter (data);
+			var handler = new ShapeCommandExporter ();
 			tag.export (handler);
 			
 			for (command in handler.commands) {

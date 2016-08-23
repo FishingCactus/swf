@@ -17,7 +17,7 @@ class MorphShape extends flash.display.Shape {
 		
 		super ();
 		
-		handler = new ShapeCommandExporter (data);
+		handler = new ShapeCommandExporter ();
 		this.tag = tag;
 		this.tag.exportHandler = handler;
 		this.data = data;
