@@ -228,48 +228,38 @@ class SWFLiteExporter {
 	if (Std.is (tag, TagDefineBitsLossless)) {
 		
 			var data:TagDefineBitsLossless = cast tag;
-			
-			if ( Std.is ( tag, TagDefineBitsLossless2 )) {
-			
-				var data:TagDefineBitsLossless2 = cast tag;
-			 
- 				var colorTable = new Array <Int> ();
 			 	var buffer = data.zlibBitmapData;
 				
-		 		buffer.uncompress ();
-				buffer.position = 0;
-			 
 			 if (data.bitmapFormat == BitmapFormat.BIT_8) {	
 				 
-				 for (i in 0...data.bitmapColorTableSize ) {
+				if ( Std.is ( tag, TagDefineBitsLossless2)) {
 				 
-				 	 var color:RGBA = new RGBA(); 
-
-					 color.a = buffer.readUnsignedByte ();
-					 color.b = buffer.readUnsignedByte ();
-					 color.g = buffer.readUnsignedByte ();
-					 color.r = buffer.readUnsignedByte ();
-
-					 colorTable.push ((color.a << 24) + (color.b << 16) + (color.g << 8) + color.r);
-				 }
-				 
+					var data:TagDefineBitsLossless2 = cast tag;		 
+					buffer = data.zlibBitmapData;
+					buffer.uncompress ();
 				 var values = Bytes.alloc ((data.bitmapWidth  + 1)* data.bitmapHeight * 4);
-				 var indexImage = 0 ;
-				 var index:Int = 0;
 		 
 				 for ( y in 0...data.bitmapHeight ){
 				
-					 indexImage =  y * data.bitmapWidth * 4 + y ;					
+						 var indexImage:Int = y*data.bitmapWidth*4 + y;
+											 
 					 values.set (indexImage, 0);	
 				 	 indexImage += 1;
 			
 					 for ( x in 0...data.bitmapWidth  ){
 						 
-						 index =  buffer.readUnsignedByte ();	
-							 values.setInt32( x * 4 + indexImage, colorTable[index] ) ;		
-						  if (index > colorTable.length) {
-								throw  'index outside bounds' ;
-						 } 
+							 var index:Int = y*data.bitmapWidth + x;
+							 
+							 buffer.position = index + data.bitmapColorTableSize*4;
+							 buffer.position =  buffer.readUnsignedByte ()*4;
+							 
+							 var a:UInt = buffer.readUnsignedByte ();
+							 var b:UInt = buffer.readUnsignedByte ();
+							 var g:UInt = buffer.readUnsignedByte ();
+							 var r:UInt = buffer.readUnsignedByte ();
+							 
+							 values.setInt32( x * 4 + indexImage, (a << 24) + (b << 16) + (g << 8) + r);
+								
 					 }
 				 }
 				
@@ -284,29 +274,12 @@ class SWFLiteExporter {
 				 
 				 byteArray = ByteArray.fromBytes (output.getBytes ());
 				 type = BitmapType.PNG;
-				 
 							 
 			 } else {
-				 
-					 var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, true);
-					 
-					 bitmapData.image.buffer.premultiplied = false;
-					 bitmapData.setPixels (bitmapData.rect, buffer);
-					 bitmapData.image.buffer.premultiplied = true;
-					 bitmapData.image.premultiplied = false;
-					 
-					 byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
-					 type = BitmapType.PNG;
-				 
-				 }
-		 
-		 } else {
-				var buffer = data.zlibBitmapData;
+					 buffer = data.zlibBitmapData;
 				buffer.uncompress ();
 				buffer.position = 0;
 			
-				if (data.bitmapFormat == BitmapFormat.BIT_8) {
-				
 					var palette = Bytes.alloc (data.bitmapColorTableSize * 3);
 					var index = 0;
 					
@@ -343,9 +316,17 @@ class SWFLiteExporter {
 					byteArray = ByteArray.fromBytes (output.getBytes ());
 					type = BitmapType.PNG;
 					
+		 		}			
 				} else {
-					
 					var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight);
+				if (Std.is ( tag, TagDefineBitsLossless2)){
+					
+					var data:TagDefineBitsLossless2 = cast tag;		 
+					var buffer = data.zlibBitmapData;
+					bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, true);
+					
+					buffer.uncompress ();
+				}
 					
 					bitmapData.image.buffer.premultiplied = false;
 					bitmapData.setPixels (bitmapData.rect, buffer);
@@ -355,7 +336,6 @@ class SWFLiteExporter {
 					byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
 					type = BitmapType.PNG;
 				
-				}
 			}		
 		} else if (Std.is (tag, TagDefineBitsJPEG2)) {
 			
@@ -926,7 +906,7 @@ class SWFLiteExporter {
 				
 				return addSprite (cast tag);
 				
-			} else if (Std.is (tag, TagDefineBits) || Std.is (tag, TagDefineBitsJPEG2) || Std.is (tag, TagDefineBitsLossless) || Std.is ( tag, TagDefineBitsLossless2 )) {		
+			} else if (Std.is (tag, TagDefineBits) || Std.is (tag, TagDefineBitsJPEG2) || Std.is (tag, TagDefineBitsLossless)) {
 				
 				return addBitmap (tag);
 				
