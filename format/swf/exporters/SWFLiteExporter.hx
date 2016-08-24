@@ -225,29 +225,29 @@ class SWFLiteExporter {
 		var byteArray = null;
 		var type = null;
  
-	if (Std.is (tag, TagDefineBitsLossless)) {
-		
-			var data:TagDefineBitsLossless = cast tag;
-			 	var buffer = data.zlibBitmapData;
-				
-			 if (data.bitmapFormat == BitmapFormat.BIT_8) {	
-				 
+		if (Std.is (tag, TagDefineBitsLossless)) {
+						 
+			var data:TagDefineBitsLossless = cast tag;		
+			var buffer = data.zlibBitmapData;
+
+			if (data.bitmapFormat == BitmapFormat.BIT_8) {
+
 				if ( Std.is ( tag, TagDefineBitsLossless2)) {
 				 
 					var data:TagDefineBitsLossless2 = cast tag;		 
 					buffer = data.zlibBitmapData;
 					buffer.uncompress ();
-				 var values = Bytes.alloc ((data.bitmapWidth  + 1)* data.bitmapHeight * 4);
-		 
-				 for ( y in 0...data.bitmapHeight ){
-				
+					var values = Bytes.alloc ((data.bitmapWidth + 1)*data.bitmapHeight*4);
+			 
+					for (y in 0...data.bitmapHeight){
+					
 						 var indexImage:Int = y*data.bitmapWidth*4 + y;
 											 
-					 values.set (indexImage, 0);	
-				 	 indexImage += 1;
-			
-					 for ( x in 0...data.bitmapWidth  ){
-						 
+						 values.set (indexImage, 0);
+						 indexImage += 1;
+						
+						 for (x in 0...data.bitmapWidth){
+							 
 							 var index:Int = y*data.bitmapWidth + x;
 							 
 							 buffer.position = index + data.bitmapColorTableSize*4;
@@ -260,64 +260,64 @@ class SWFLiteExporter {
 							 
 							 values.setInt32( x * 4 + indexImage, (a << 24) + (b << 16) + (g << 8) + r);
 								
+						 }
 					 }
-				 }
-				
-				 var png = new List ();
-				 png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColTrue ( true ), interlaced: false } ));
-				 png.add (CData (Deflate.run(values)));
-				 png.add (CEnd);
-				
-				 var output = new BytesOutput ();
-				 var writer = new Writer (output);
-				 writer.write (png);
-				 
-				 byteArray = ByteArray.fromBytes (output.getBytes ());
-				 type = BitmapType.PNG;
-							 
-			 } else {
+			 
+					 var png = new List ();
+					 png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColTrue ( true ), interlaced: false } ));
+					 png.add (CData (Deflate.run(values)));
+					 png.add (CEnd);
+					
+					 var output = new BytesOutput ();
+					 var writer = new Writer (output);
+					 writer.write (png);
+					 
+					 byteArray = ByteArray.fromBytes (output.getBytes ());
+					 type = BitmapType.PNG;
+					 					 
+				 } else {
 					 buffer = data.zlibBitmapData;
-				buffer.uncompress ();
-				buffer.position = 0;
+					 buffer.uncompress ();
+					 buffer.position = 0;
+				 
+					 var palette = Bytes.alloc (data.bitmapColorTableSize * 3);
+					 var index = 0;
+						 
+					 for (i in 0...data.bitmapColorTableSize) {
+						 
+						 palette.set (index++, buffer.readUnsignedByte ());
+						 palette.set (index++, buffer.readUnsignedByte ());
+						 palette.set (index++, buffer.readUnsignedByte ());
 			
-					var palette = Bytes.alloc (data.bitmapColorTableSize * 3);
-					var index = 0;
-					
-					for (i in 0...data.bitmapColorTableSize) {
-						
-						palette.set (index++, buffer.readUnsignedByte ());
-						palette.set (index++, buffer.readUnsignedByte ());
-						palette.set (index++, buffer.readUnsignedByte ());
-
-					}
-					
-					var values = Bytes.alloc ((data.bitmapWidth + 1) * data.bitmapHeight);
-					index = 0;
-					
-					for (y in 0...data.bitmapHeight) {
-						
-						values.set (index++, 0);
-						values.blit (index, buffer, buffer.position, data.bitmapWidth);
-						index += data.bitmapWidth;
-						buffer.position += ( data.bitmapWidth + 3 ) & ~3;
-						
-					}
-					
-					var png = new List ();
-					png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColIndexed, interlaced: false } ));
-					png.add (CPalette (palette));
-					png.add (CData (Deflate.run (values)));
-					png.add (CEnd);
-					
-					var output = new BytesOutput ();
-					var writer = new Writer (output);
-					writer.write (png);
-					
-					byteArray = ByteArray.fromBytes (output.getBytes ());
-					type = BitmapType.PNG;
-					
+					 }
+						 
+					 var values = Bytes.alloc ((data.bitmapWidth + 1) * data.bitmapHeight);
+					 index = 0;
+					 
+					 for (y in 0...data.bitmapHeight) {
+						 
+						 values.set (index++, 0);
+						 values.blit (index, buffer, buffer.position, data.bitmapWidth);
+						 index += data.bitmapWidth;
+						 buffer.position += ( data.bitmapWidth + 3 ) & ~3;
+						 
+					 }
+						 
+					 var png = new List ();
+					 png.add (CHeader ( { width: data.bitmapWidth, height: data.bitmapHeight, colbits: 8, color: ColIndexed, interlaced: false } ));
+					 png.add (CPalette (palette));
+					 png.add (CData (Deflate.run (values)));
+					 png.add (CEnd);
+					 
+					 var output = new BytesOutput ();
+					 var writer = new Writer (output);
+					 writer.write (png);
+					 
+					 byteArray = ByteArray.fromBytes (output.getBytes ());
+					 type = BitmapType.PNG;
+			 
 		 		}			
-				} else {
+			} else {
 					var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight);
 				if (Std.is ( tag, TagDefineBitsLossless2)){
 					
@@ -327,16 +327,16 @@ class SWFLiteExporter {
 					
 					buffer.uncompress ();
 				}
-					
-					bitmapData.image.buffer.premultiplied = false;
-					bitmapData.setPixels (bitmapData.rect, buffer);
-					bitmapData.image.buffer.premultiplied = true;
-					bitmapData.image.premultiplied = false;
-					
-					byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
-					type = BitmapType.PNG;
+
+				bitmapData.image.buffer.premultiplied = false;
+				bitmapData.setPixels (bitmapData.rect, buffer);
+				bitmapData.image.buffer.premultiplied = true;
+				bitmapData.image.premultiplied = false;
 				
-			}		
+				byteArray = bitmapData.encode (bitmapData.rect, new PNGEncoderOptions ());
+				type = BitmapType.PNG;
+			
+			}
 		} else if (Std.is (tag, TagDefineBitsJPEG2)) {
 			
 			var data:TagDefineBitsJPEG2 = cast tag;
