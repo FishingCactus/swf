@@ -556,13 +556,6 @@ class SWFLiteExporter {
 				
 				instances.push (object.placedAtIndex);
 				
-				if (object.placedAtIndex == 0 && object.characterId != zeroCharacter) {
-					
-					lastModified.remove (0);
-					zeroCharacter = object.characterId;
-					
-				}
-				
 				if (!lastModified.exists (object.placedAtIndex)) {
 					
 					processTag (cast data.getCharacter (object.characterId));
