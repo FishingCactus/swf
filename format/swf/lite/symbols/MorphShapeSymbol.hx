@@ -58,6 +58,13 @@ class MorphShapeSymbol extends SWFSymbol {
 				case SWFShapeRecord.TYPE_STYLECHANGE:
 					var startStyleChange:SWFShapeRecordStyleChange = cast startRecord.clone();
 					startStyleChange.stateMoveTo = true;
+					if (startStyleChange.moveDeltaX == null ){
+						startStyleChange.moveDeltaX = 0;
+					}
+					if (startStyleChange.moveDeltaY == null ){
+						startStyleChange.moveDeltaY = 0;
+					}
+					
 					if (endRecord.type == SWFShapeRecord.TYPE_STYLECHANGE) {
 						var endStyleChange:SWFShapeRecordStyleChange = cast endRecord;
 						startStyleChange.moveDeltaX += Std.int ((endStyleChange.moveDeltaX - startStyleChange.moveDeltaX) * ratio);
