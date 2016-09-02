@@ -768,7 +768,7 @@ class SWFLiteExporter {
 			symbol.rightMargin = tag.rightMargin;
 			symbol.indent = tag.indent;
 			symbol.leading = tag.leading;
-			
+			symbol.name = tag.variableName;
 		}
 		
 		symbol.wordWrap = tag.wordWrap;
