@@ -546,6 +546,7 @@ class MovieClip extends flash.display.MovieClip {
 
 			__targetFrame = __getFrame (frame);
 			if ( __targetFrame == __currentFrame ) {
+				__targetFrame = null;
 				return true;
 			}
 			play ();
