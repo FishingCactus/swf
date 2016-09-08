@@ -161,6 +161,7 @@ class MovieClip extends flash.display.MovieClip {
 	public override function gotoAndPlay (frame:#if flash flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 
 		__goto(frame, scene);
+		play();
 	}
 
 
@@ -544,10 +545,12 @@ class MovieClip extends flash.display.MovieClip {
 
 		if(__targetFrame == null) {
 
-			__targetFrame = __getFrame (frame);
-			if ( __targetFrame == __currentFrame ) {
+			var targetFrame = __getFrame (frame);
+			if ( targetFrame == __currentFrame ) {
 				return true;
 			}
+
+			__targetFrame = targetFrame;
 			play ();
 
 			do {
