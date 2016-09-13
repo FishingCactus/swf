@@ -312,6 +312,8 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
+			Reflect.setField( displayObject, "symbolId", symbol.id );
+
 		}
 
 		return displayObject;
@@ -572,7 +574,7 @@ class MovieClip extends flash.display.MovieClip {
 		}
 
 	}
-	
+
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
 
 		if (frameObject.name != null) {
@@ -739,7 +741,7 @@ class MovieClip extends flash.display.MovieClip {
 
 					if( frameObject.id == object_id ){
 
-							remove = false;
+							remove = frameObject.symbol != Reflect.field( __objects.get( object_id ), "symbolId" );
 							break;
 					}
 			}
