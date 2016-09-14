@@ -351,7 +351,7 @@ class SWFLiteExporter {
 					alphaByteArray = null;
 					byteArray = lime.graphics.format.PNG.encode( image );
 
-					type = BitmapType.PNG;
+					type = BitmapType.PNG_ALPHA;
 
 				} else {
 
@@ -909,6 +909,7 @@ class SWFLiteExporter {
 enum BitmapType {
 	
 	PNG;
+	PNG_ALPHA;
 	JPEG_ALPHA;
 	JPEG;
 	
