@@ -35,7 +35,8 @@ class FilterDropShadow extends Filter implements IFilter
 			strength,
 			passes,
 			innerShadow,
-			knockout
+			knockout,
+			!compositeSource
 		);
 	}
 	
@@ -51,7 +52,7 @@ class FilterDropShadow extends Filter implements IFilter
 			passes,
 			innerShadow,
 			knockout,
-			false
+			!compositeSource
 		);
 	}
 	
