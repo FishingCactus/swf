@@ -658,10 +658,12 @@ class Tools {
 					var swfLite = exporter.swfLite;
 					
 					for (id in exporter.bitmaps.keys ()) {
-						
-						var type = exporter.bitmapTypes.get (id) == BitmapType.PNG ? "png" : "jpg";
+
+						var sourceType = exporter.bitmapTypes.get (id);
+						var type = ( sourceType == BitmapType.PNG || sourceType == BitmapType.PNG_ALPHA )  ? "png" : "jpg";
 						var symbol:BitmapSymbol = cast swfLite.symbols.get (id);
 						symbol.path = "lib/" + library.name + "/" + id + "." + type;
+						symbol.unpremultiply = sourceType == BitmapType.PNG_ALPHA;
 						swfLite.symbols.set (id, symbol);
 						
 						var asset = new Asset ("", symbol.path, AssetType.IMAGE);

@@ -161,6 +161,7 @@ class MovieClip extends flash.display.MovieClip {
 	public override function gotoAndPlay (frame:#if flash flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 
 		__goto(frame, scene);
+		play();
 	}
 
 
@@ -310,6 +311,8 @@ class MovieClip extends flash.display.MovieClip {
 				displayObject = new SimpleButton (__swf, cast symbol);
 
 			}
+
+			Reflect.setField( displayObject, "symbolId", symbol.id );
 
 		}
 
@@ -464,6 +467,14 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
+			if( symbol.unpremultiply ){
+				source.buffer.premultiplied = true;
+
+				#if !sys
+				source.premultiplied = false;
+				#end
+			}
+
 			#if !flash
 			var bitmapData = BitmapData.fromImage (source);
 			#else
@@ -544,8 +555,13 @@ class MovieClip extends flash.display.MovieClip {
 
 		if(__targetFrame == null) {
 
+			var targetFrame = __getFrame (frame);
+			if ( targetFrame == __currentFrame ) {
+				return true;
+			}
+
+			__targetFrame = targetFrame;
 			play ();
-			__targetFrame = __getFrame (frame);
 
 			do {
 				__currentFrame = __targetFrame;
@@ -566,7 +582,7 @@ class MovieClip extends flash.display.MovieClip {
 		}
 
 	}
-	
+
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
 
 		if (frameObject.name != null) {
@@ -733,7 +749,7 @@ class MovieClip extends flash.display.MovieClip {
 
 					if( frameObject.id == object_id ){
 
-							remove = false;
+							remove = frameObject.symbol != Reflect.field( __objects.get( object_id ), "symbolId" );
 							break;
 					}
 			}
@@ -787,7 +803,7 @@ class MovieClip extends flash.display.MovieClip {
 
 					displayObject = __objects.get (frameObject.id);
 
-					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER || frameObject.type == FrameObjectType.CREATE ){
+					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER ){
 
 						var oldObject : DisplayObject = displayObject;
 
