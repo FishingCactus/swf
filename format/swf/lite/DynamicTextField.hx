@@ -11,6 +11,7 @@ import flash.text.TextFormatAlign;
 import format.swf.lite.symbols.DynamicTextSymbol;
 import format.swf.lite.symbols.FontSymbol;
 import format.swf.lite.SWFLite;
+import openfl._internal.text.TextEngine;
 
 
 class DynamicTextField extends TextField {
@@ -56,7 +57,7 @@ class DynamicTextField extends TextField {
 			//embedFonts = true;
 
 		}
-		format.font = SWFLite.fontAliases.get (symbol.fontName);
+		format.font = TextEngine.fontAliases.get (symbol.fontName);
 		if (format.font == null) {
 			format.font = symbol.fontName;
 		}
