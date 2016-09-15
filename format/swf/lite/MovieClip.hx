@@ -467,14 +467,6 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
-			if( symbol.unpremultiply ){
-				source.buffer.premultiplied = true;
-
-				#if !sys
-				source.premultiplied = false;
-				#end
-			}
-
 			#if !flash
 			var bitmapData = BitmapData.fromImage (source);
 			#else
