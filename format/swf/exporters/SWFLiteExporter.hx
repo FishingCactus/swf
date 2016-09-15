@@ -246,7 +246,15 @@ class SWFLiteExporter {
 					palette.set (index++, buffer.readUnsignedByte ());
 					palette.set (index++, buffer.readUnsignedByte ());
 					palette.set (index++, buffer.readUnsignedByte ());
-					if (transparent) alpha.set (i, buffer.readUnsignedByte ());
+					if (transparent) {
+						var alpha_value = buffer.readUnsignedByte ();
+						if(alpha_value != 0 && alpha_value != 0xFF) {
+							palette.set (index-3, Std.int(Math.min(Math.max(palette.get(index-3)*255 / alpha_value,0),255)));
+							palette.set (index-2, Std.int(Math.min(Math.max(palette.get(index-2)*255 / alpha_value,0),255)));
+							palette.set (index-1, Std.int(Math.min(Math.max(palette.get(index-1)*255 / alpha_value,0),255)));
+						}
+						alpha.set (i, alpha_value);
+					};
 					
 				}
 				
@@ -343,7 +351,9 @@ class SWFLiteExporter {
 
 							pixel.readUInt8(srcData, srcPosition * 4);
 							pixel.a = alpha[srcPosition];
+							pixel.unmultiplyAlpha();
 							pixel.writeUInt8(srcData, srcPosition * 4);
+
 							srcPosition += 1;
 						}
 					}
