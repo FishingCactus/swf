@@ -803,7 +803,7 @@ class MovieClip extends flash.display.MovieClip {
 
 					displayObject = __objects.get (frameObject.id);
 
-					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER ){
+					if( frameObject.type == FrameObjectType.UPDATE_CHARACTER || frameObject.type == FrameObjectType.CREATE ){
 
 						var oldObject : DisplayObject = displayObject;
 
