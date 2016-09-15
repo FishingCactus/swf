@@ -343,6 +343,15 @@ class SWFLiteExporter {
 
 							pixel.readUInt8(srcData, srcPosition * 4);
 							pixel.a = alpha[srcPosition];
+
+							if( pixel.a > 0 ){
+
+								var a = pixel.a / 255.0;
+
+								pixel.r = Std.int( Math.min( pixel.r / a, 255 ) );
+								pixel.g = Std.int( Math.min( pixel.g / a, 255 ) );
+								pixel.b = Std.int( Math.min( pixel.b / a, 255 ) );
+							}
 							pixel.writeUInt8(srcData, srcPosition * 4);
 							srcPosition += 1;
 						}
@@ -351,7 +360,7 @@ class SWFLiteExporter {
 					alphaByteArray = null;
 					byteArray = lime.graphics.format.PNG.encode( image );
 
-					type = BitmapType.PNG_ALPHA;
+					type = BitmapType.PNG;
 
 				} else {
 
@@ -907,10 +916,9 @@ class SWFLiteExporter {
 
 
 enum BitmapType {
-	
+
 	PNG;
-	PNG_ALPHA;
 	JPEG_ALPHA;
 	JPEG;
-	
+
 }
