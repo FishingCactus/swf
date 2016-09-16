@@ -668,15 +668,15 @@ class MovieClip extends flash.display.MovieClip {
 
 		if (__symbol.scalingGridRect != null && __9SliceBitmap == null) {
 				var bounds:Rectangle = new Rectangle();
-				__getRenderBounds(bounds, @:privateAccess Matrix.__identity);
-
+				__getBounds (bounds);
+				
 				if (bounds.width <= 0 && bounds.height <= 0) {
 					throw 'Error creating a cached bitmap. The texture size is ${bounds.width}x${bounds.height}';
 				}
 
 				var matrix:Matrix = new Matrix();
-				matrix.translate(-bounds.x, -bounds.y);
-				__9SliceBitmap = new BitmapData (Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
+				matrix.translate (-bounds.x, -bounds.y);
+				__9SliceBitmap = new BitmapData (Math.ceil (bounds.width), Math.ceil (bounds.height), true, 0);
 				__drawingBitmapData = true;
 				__9SliceBitmap.draw (this, matrix);
 				__drawingBitmapData = false;
