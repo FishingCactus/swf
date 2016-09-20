@@ -62,6 +62,7 @@ class MovieClip extends flash.display.MovieClip {
 	#end
 
 	private var __9SliceBitmap:BitmapData;
+	private var __scale9Rect:Rectangle;
 
 	private var __SWFDepthData:Map<DisplayObject, Int>;
 	private var __maskData:Map<DisplayObject, Int>;
@@ -94,6 +95,10 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
+		}
+
+		if (__symbol.scalingGridRect != null ) {
+			__useSeparateRenderScaleTransform = false;
 		}
 
 		#if (!flash && openfl && !openfl_legacy)
@@ -661,6 +666,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __update (transformOnly:Bool, updateChildren:Bool, ?maskGraphics:Graphics = null):Void {
+
 		super.__update(transformOnly, updateChildren, maskGraphics);
 
 		// :TODO: should be in a prerender phase
@@ -669,9 +675,15 @@ class MovieClip extends flash.display.MovieClip {
 		if (__symbol.scalingGridRect != null && __9SliceBitmap == null) {
 				var bounds:Rectangle = new Rectangle();
 				__getBounds (bounds);
-				
+
 				if (bounds.width <= 0 && bounds.height <= 0) {
 					throw 'Error creating a cached bitmap. The texture size is ${bounds.width}x${bounds.height}';
+				}
+
+				if (__scale9Rect == null) {
+					__scale9Rect = __symbol.scalingGridRect.clone();
+					__scale9Rect.x -= bounds.x;
+					__scale9Rect.y -= bounds.y;
 				}
 
 				var matrix:Matrix = new Matrix();
@@ -683,20 +695,46 @@ class MovieClip extends flash.display.MovieClip {
 		}
 	}
 
-	@:noCompletion private function drawScale9Bitmap(renderSession:RenderSession, bitmap:BitmapData, drawWidth:Float, drawHeight:Float, scale9Rect:Rectangle):Void {
+	@:noCompletion private function drawScale9Bitmap (renderSession:RenderSession):Void {
 
-		var matrix = new Matrix();
-		var cols = [0, scale9Rect.left, drawWidth - (bitmap.width - scale9Rect.right), drawWidth];
-		var rows = [0, scale9Rect.top, drawHeight - (bitmap.height - scale9Rect.bottom), drawHeight];
-		var us = [0, scale9Rect.left / bitmap.width, scale9Rect.right / bitmap.width, 1];
-		var vs = [0, scale9Rect.top / bitmap.height, scale9Rect.bottom/ bitmap.height, 1];
+		var bounds:Rectangle = new Rectangle();
+		__getBounds (bounds);
+
+		var bordersReservedWidth = __9SliceBitmap.width - __scale9Rect.width;
+		var bordersReservedHeight = __9SliceBitmap.height - __scale9Rect.height;
+		var bordersHorizontalScale:Float = 1.0;
+		var bordersVerticalScale:Float = 1.0;
+
+		if (width < bordersReservedWidth) {
+			bordersHorizontalScale = width / bordersReservedWidth;
+		}
+
+		if (height < bordersReservedHeight) {
+			bordersVerticalScale = height / bordersReservedHeight;
+		}
+
+		var rect = @:privateAccess Rectangle.__temp;
+		rect.left = bordersHorizontalScale * __scale9Rect.left;
+		rect.right = Math.max (rect.left, width - bordersHorizontalScale * (__9SliceBitmap.width - __scale9Rect.right) );
+		rect.top = bordersVerticalScale * __scale9Rect.top;
+		rect.bottom = Math.max (rect.top, height - bordersVerticalScale * (__9SliceBitmap.height - __scale9Rect.bottom) );
+
+		var renderToBitmapXScale = __9SliceBitmap.width / width;
+		var renderToBitmapYScale = __9SliceBitmap.height / height;
+		var cols = [0, rect.left * renderToBitmapXScale, rect.right * renderToBitmapXScale, __9SliceBitmap.width];
+		var rows = [0, rect.top * renderToBitmapYScale, rect.bottom * renderToBitmapYScale, __9SliceBitmap.height];
+		var us = [0, __scale9Rect.left / __9SliceBitmap.width, __scale9Rect.right / __9SliceBitmap.width, 1];
+		var vs = [0, __scale9Rect.top / __9SliceBitmap.height, __scale9Rect.bottom/ __9SliceBitmap.height, 1];
 		var uvs:TextureUvs = new TextureUvs();
 
-		var bitmapDataUvs = @:privateAccess bitmap.__uvData;
+		var bitmapDataUvs = @:privateAccess __9SliceBitmap.__uvData;
 		var u_scale = bitmapDataUvs.x1 - bitmapDataUvs.x0;
 		var v_scale = bitmapDataUvs.y2 - bitmapDataUvs.y0;
 
+		var matrix = new Matrix();
+
 		for(row in 0...3) {
+
 			for(col in 0...3) {
 
 				var sourceX = cols[col];
@@ -704,15 +742,16 @@ class MovieClip extends flash.display.MovieClip {
 				var w = cols[col+1] - cols[col];
 				var h = rows[row+1] - rows[row];
 
-				matrix.identity();
-				matrix.translate(sourceX + __worldTransform.tx, sourceY + __worldTransform.ty);
+				matrix.identity ();
+				matrix.translate (sourceX + bounds.x, sourceY + bounds.y);
+				matrix.concat (__renderTransform);
 
 				uvs.x0 = uvs.x3 = us[col] * u_scale;
 				uvs.x1 = uvs.x2 = us[col+1] * u_scale;
 				uvs.y0 = uvs.y1 = vs[row] * v_scale;
 				uvs.y2 = uvs.y3 = vs[row+1] * v_scale;
 
-				renderSession.spriteBatch.renderBitmapDataEx(__9SliceBitmap, w, h, uvs, true, matrix, __worldColorTransform, __worldColorTransform.alphaMultiplier, __blendMode, __shader, null);
+				renderSession.spriteBatch.renderBitmapDataEx (__9SliceBitmap, w, h, uvs, true, matrix, __worldColorTransform, __worldColorTransform.alphaMultiplier, __blendMode, __shader, null);
 
 			}
 		}
@@ -722,7 +761,7 @@ class MovieClip extends flash.display.MovieClip {
 		if (!__drawingBitmapData && __symbol.scalingGridRect != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
-			drawScale9Bitmap(renderSession, __9SliceBitmap, width, height ,__symbol.scalingGridRect);
+			drawScale9Bitmap(renderSession);
 		}
 		else {
 			super.__renderGL (renderSession);
