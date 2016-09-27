@@ -51,7 +51,6 @@ class MovieClip extends flash.display.MovieClip {
 	@:noCompletion private var __symbol:SpriteSymbol;
 	@:noCompletion private var __timeElapsed:Int;
 	@:noCompletion private var __zeroSymbol:Int;
-	@:noCompletion private var __drawingBitmapData:Bool;
 	@:noCompletion private var __targetFrame:Null<Int>;
 
 	#if flash
@@ -77,7 +76,6 @@ class MovieClip extends flash.display.MovieClip {
 		__lastUpdate = 1;
 		__objects = new Map ();
 		__zeroSymbol = -1;
-		__drawingBitmapData = false;
 
 		__currentFrame = 1;
 		__totalFrames = __symbol.frames.length;
@@ -686,12 +684,17 @@ class MovieClip extends flash.display.MovieClip {
 					__scale9Rect.y -= bounds.y;
 				}
 
-				var matrix:Matrix = new Matrix();
-				matrix.translate (-bounds.x, -bounds.y);
-				__9SliceBitmap = new BitmapData (Math.ceil (bounds.width), Math.ceil (bounds.height), true, 0);
-				__drawingBitmapData = true;
-				__9SliceBitmap.draw (this, matrix);
-				__drawingBitmapData = false;
+				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
+				var graphics = @:privateAccess getChildAt(0).__graphics;
+				
+				if (graphics == null) {
+					throw ":TODO: support 9 slice rendering when graphics is not on child at index 0";
+				}
+				
+				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
+
+				__9SliceBitmap = @:privateAccess graphics.__bitmap;
+
 		}
 	}
 
@@ -758,7 +761,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (!__drawingBitmapData && __symbol.scalingGridRect != null) {
+		if (__symbol.scalingGridRect != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
 			drawScale9Bitmap(renderSession);
@@ -990,15 +993,11 @@ class MovieClip extends flash.display.MovieClip {
 		addChild (displayObject);
 	}
 
-
 	@:noCompletion override private function __releaseResources(){
 
 		super.__releaseResources();
 
-		if(__9SliceBitmap != null ){
-			__9SliceBitmap.dispose();
-			__9SliceBitmap = null;
-		}
+		__9SliceBitmap = null;
 
 	}
 
