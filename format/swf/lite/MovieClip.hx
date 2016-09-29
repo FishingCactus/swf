@@ -685,10 +685,20 @@ class MovieClip extends flash.display.MovieClip {
 				}
 
 				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
-				var graphics = @:privateAccess getChildAt(0).__graphics;
+				var graphics:Graphics = null;
+				
+				for(i in 0...__children.length)
+				{
+					var childGraphics = @:privateAccess getChildAt(i).__graphics;
+					if(childGraphics != null)
+					{
+						graphics = childGraphics;
+						break;
+					}
+				}
 				
 				if (graphics == null) {
-					throw ":TODO: support 9 slice rendering when graphics is not on child at index 0";
+					throw "Cannot find graphics for 9 slice rendering";
 				}
 				
 				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
