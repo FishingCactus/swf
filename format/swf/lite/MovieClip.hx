@@ -920,6 +920,11 @@ class MovieClip extends flash.display.MovieClip {
 			var result = numChildren;
 			for( i in maskIndex ... numChildren ){
 				var sibling = getChildAt(i);
+				sibling.__clippedAt = null;
+			}
+			for( i in maskIndex ... numChildren ){
+				var sibling = getChildAt(i);
+				sibling.__clippedAt = maskIndex;
 				if( __SWFDepthData.get(sibling) > depthValue){
 					result = i;
 					break;
