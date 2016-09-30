@@ -924,10 +924,11 @@ class MovieClip extends flash.display.MovieClip {
 			}
 			for( i in maskIndex ... numChildren ){
 				var sibling = getChildAt(i);
-				sibling.__clippedAt = maskIndex;
 				if( __SWFDepthData.get(sibling) > depthValue){
 					result = i;
 					break;
+				} else {
+					sibling.__clippedAt = maskIndex;
 				}
 			}
 
