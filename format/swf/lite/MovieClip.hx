@@ -271,48 +271,52 @@ class MovieClip extends flash.display.MovieClip {
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
 
-			if( __swf.classes_id.exists( object.symbol ))
+			if(displayObject == null && __swf.classes_id.exists( object.symbol ))
 			{
 				var _class: Class<Dynamic> = __swf.classes_id.get(object.symbol);
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
+			
+			if(displayObject == null)
+			{
+					
+				if (Std.is (symbol, SpriteSymbol)) {
 
-			if (Std.is (symbol, SpriteSymbol)) {
+					displayObject = new MovieClip (__swf, cast symbol);
 
-				displayObject = new MovieClip (__swf, cast symbol);
+				} else if (Std.is (symbol, ShapeSymbol)) {
 
-			} else if (Std.is (symbol, ShapeSymbol)) {
+					displayObject = __createShape (cast symbol);
 
-				displayObject = __createShape (cast symbol);
+				} else if (Std.is (symbol, MorphShapeSymbol)) {
 
-			} else if (Std.is (symbol, MorphShapeSymbol)) {
+					displayObject = __createMorphShape (cast symbol);
 
-				displayObject = __createMorphShape (cast symbol);
+				} else if (Std.is (symbol, BitmapSymbol)) {
 
-			} else if (Std.is (symbol, BitmapSymbol)) {
+					displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
 
-				displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
+				} else if (Std.is (symbol, DynamicTextSymbol)) {
 
-			} else if (Std.is (symbol, DynamicTextSymbol)) {
+					displayObject = new DynamicTextField (__swf, cast symbol);
 
-				displayObject = new DynamicTextField (__swf, cast symbol);
+				} else if (Std.is (symbol, StaticTextSymbol)) {
 
-			} else if (Std.is (symbol, StaticTextSymbol)) {
+					displayObject = new StaticTextField (__swf, cast symbol);
 
-				displayObject = new StaticTextField (__swf, cast symbol);
+				} else if (Std.is (symbol, ButtonSymbol)) {
 
-			} else if (Std.is (symbol, ButtonSymbol)) {
+					displayObject = new SimpleButton (__swf, cast symbol);
 
-				displayObject = new SimpleButton (__swf, cast symbol);
-
+				}
 			}
 
 			Reflect.setField( displayObject, "symbolId", symbol.id );
@@ -585,6 +589,7 @@ class MovieClip extends flash.display.MovieClip {
 			displayObject.name = frameObject.name;
 
 		}
+		
 
 		if (frameObject.matrix != null) {
 
