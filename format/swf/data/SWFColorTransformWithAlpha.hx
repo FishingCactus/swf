@@ -7,16 +7,16 @@ class SWFColorTransformWithAlpha extends SWFColorTransform
 	public function new(data:SWFData = null) {
 		super(data);
 	}
-	
+
 	override public function parse(data:SWFData):Void {
 		data.resetBitsPending();
 		hasAddTerms = (data.readUB(1) == 1);
 		hasMultTerms = (data.readUB(1) == 1);
 		var bits:Int = data.readUB(4);
-		rMult = 0xFF;
-		gMult = 0xFF;
-		bMult = 0xFF;
-		aMult = 0xFF;
+		rMult = 0x100;
+		gMult = 0x100;
+		bMult = 0x100;
+		aMult = 0x100;
 		if (hasMultTerms) {
 			rMult = data.readSB(bits);
 			gMult = data.readSB(bits);
@@ -34,7 +34,7 @@ class SWFColorTransformWithAlpha extends SWFColorTransform
 			aAdd = data.readSB(bits);
 		}
 	}
-	
+
 	override public function publish(data:SWFData):Void {
 		data.resetBitsPending();
 		data.writeUB(1, hasAddTerms ? 1 : 0);
@@ -57,7 +57,7 @@ class SWFColorTransformWithAlpha extends SWFColorTransform
 			data.writeSB(bits, aAdd);
 		}
 	}
-	
+
 	override public function clone():SWFColorTransform {
 		var colorTransform:SWFColorTransformWithAlpha = new SWFColorTransformWithAlpha();
 		colorTransform.hasAddTerms = hasAddTerms;
@@ -72,7 +72,7 @@ class SWFColorTransformWithAlpha extends SWFColorTransform
 		colorTransform.aAdd = aAdd;
 		return colorTransform;
 	}
-	
+
 	override public function toString():String {
 		return ("(redMultiplier=" + rMult + ", greenMultiplier=" + gMult + ", blueMultiplier=" + bMult + ", alphaMultiplier=" + aMult + ", redOffset=" + rAdd + ", greenOffset=" + gAdd + ", blueOffset=" + bAdd + ", alphaOffset=" + aAdd +")");
 	}
