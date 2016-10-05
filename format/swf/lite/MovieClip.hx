@@ -840,6 +840,13 @@ class MovieClip extends flash.display.MovieClip {
 				if (!__objects.exists (frameObject.id)) {
 
 					displayObject = __createObject (frameObject);
+					// This needs to be set up here because the Locale listens for a the ADDED event, and updates localization based on name of the child.
+					if (frameObject.name != null) {
+
+						displayObject.name = frameObject.name;
+
+					}
+
 
 					if (displayObject != null) {
 
