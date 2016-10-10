@@ -773,12 +773,12 @@ class SWFLiteExporter {
 		
 		var records = [];
 		var fontIsScaled : Bool = false;
+		var font:FontSymbol = null;
+		var defineFont:TagDefineFont2 = null;
 		
 		for (record in tag.records) {
 			
 			var textRecord = new StaticTextRecord ();
-			var font:FontSymbol = null;
-			var defineFont:TagDefineFont2 = null;
 			
 			if (record.hasFont) {
 				
