@@ -321,6 +321,12 @@ class MovieClip extends flash.display.MovieClip {
 
 			Reflect.setField( displayObject, "symbolId", symbol.id );
 
+			if (object.name != null) {
+
+				displayObject.name = object.name;
+
+			}
+
 		}
 
 		return displayObject;
@@ -583,13 +589,6 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
-
-		if (frameObject.name != null) {
-
-			displayObject.name = frameObject.name;
-
-		}
-		
 
 		if (frameObject.matrix != null) {
 
