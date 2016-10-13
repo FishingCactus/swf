@@ -7,8 +7,8 @@ import flash.geom.Matrix;
 
 
 class FrameObject {
-	
-	
+
+
 	public var clipDepth:Int;
 	public var colorTransform:ColorTransform;
 	public var depth:Int;
@@ -23,10 +23,10 @@ class FrameObject {
 
 
 	public function new () {
-		
-		
-		
+
+
+
 	}
-	
-	
+
+
 }
