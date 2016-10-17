@@ -51,7 +51,6 @@ class MovieClip extends flash.display.MovieClip {
 	@:noCompletion private var __symbol:SpriteSymbol;
 	@:noCompletion private var __timeElapsed:Int;
 	@:noCompletion private var __zeroSymbol:Int;
-	@:noCompletion private var __drawingBitmapData:Bool;
 	@:noCompletion private var __targetFrame:Null<Int>;
 
 	#if flash
@@ -62,6 +61,7 @@ class MovieClip extends flash.display.MovieClip {
 	#end
 
 	private var __9SliceBitmap:BitmapData;
+	private var __scale9Rect:Rectangle;
 
 	private var __SWFDepthData:Map<DisplayObject, Int>;
 	private var __maskData:Map<DisplayObject, Int>;
@@ -76,7 +76,6 @@ class MovieClip extends flash.display.MovieClip {
 		__lastUpdate = 1;
 		__objects = new Map ();
 		__zeroSymbol = -1;
-		__drawingBitmapData = false;
 
 		__currentFrame = 1;
 		__totalFrames = __symbol.frames.length;
@@ -94,6 +93,10 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
+		}
+
+		if (__symbol.scalingGridRect != null ) {
+			__useSeparateRenderScaleTransform = false;
 		}
 
 		#if (!flash && openfl && !openfl_legacy)
@@ -268,51 +271,61 @@ class MovieClip extends flash.display.MovieClip {
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
 
-			if( __swf.classes_id.exists( object.symbol ))
+			if(displayObject == null && __swf.classes_id.exists( object.symbol ))
 			{
 				var _class: Class<Dynamic> = __swf.classes_id.get(object.symbol);
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
+				}
+			}
+			
+			if(displayObject == null)
+			{
+					
+				if (Std.is (symbol, SpriteSymbol)) {
+
+					displayObject = new MovieClip (__swf, cast symbol);
+
+				} else if (Std.is (symbol, ShapeSymbol)) {
+
+					displayObject = __createShape (cast symbol);
+
+				} else if (Std.is (symbol, MorphShapeSymbol)) {
+
+					displayObject = __createMorphShape (cast symbol);
+
+				} else if (Std.is (symbol, BitmapSymbol)) {
+
+					displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
+
+				} else if (Std.is (symbol, DynamicTextSymbol)) {
+
+					displayObject = new DynamicTextField (__swf, cast symbol);
+
+				} else if (Std.is (symbol, StaticTextSymbol)) {
+
+					displayObject = new StaticTextField (__swf, cast symbol);
+
+				} else if (Std.is (symbol, ButtonSymbol)) {
+
+					displayObject = new SimpleButton (__swf, cast symbol);
+
 				}
 			}
 
-			if (Std.is (symbol, SpriteSymbol)) {
+			Reflect.setField( displayObject, "symbolId", symbol.id );
 
-				displayObject = new MovieClip (__swf, cast symbol);
+			if (object.name != null) {
 
-			} else if (Std.is (symbol, ShapeSymbol)) {
-
-				displayObject = __createShape (cast symbol);
-
-			} else if (Std.is (symbol, MorphShapeSymbol)) {
-
-				displayObject = __createMorphShape (cast symbol);
-
-			} else if (Std.is (symbol, BitmapSymbol)) {
-
-				displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
-
-			} else if (Std.is (symbol, DynamicTextSymbol)) {
-
-				displayObject = new DynamicTextField (__swf, cast symbol);
-
-			} else if (Std.is (symbol, StaticTextSymbol)) {
-
-				displayObject = new StaticTextField (__swf, cast symbol);
-
-			} else if (Std.is (symbol, ButtonSymbol)) {
-
-				displayObject = new SimpleButton (__swf, cast symbol);
+				displayObject.name = object.name;
 
 			}
-
-			Reflect.setField( displayObject, "symbolId", symbol.id );
 
 		}
 
@@ -467,14 +480,6 @@ class MovieClip extends flash.display.MovieClip {
 
 			}
 
-			if( symbol.unpremultiply ){
-				source.buffer.premultiplied = true;
-
-				#if !sys
-				source.premultiplied = false;
-				#end
-			}
-
 			#if !flash
 			var bitmapData = BitmapData.fromImage (source);
 			#else
@@ -585,12 +590,6 @@ class MovieClip extends flash.display.MovieClip {
 
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
 
-		if (frameObject.name != null) {
-
-			displayObject.name = frameObject.name;
-
-		}
-
 		if (frameObject.matrix != null) {
 
 			displayObject.transform.matrix = frameObject.matrix;
@@ -669,6 +668,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __update (transformOnly:Bool, updateChildren:Bool, ?maskGraphics:Graphics = null):Void {
+
 		super.__update(transformOnly, updateChildren, maskGraphics);
 
 		// :TODO: should be in a prerender phase
@@ -676,35 +676,82 @@ class MovieClip extends flash.display.MovieClip {
 
 		if (__symbol.scalingGridRect != null && __9SliceBitmap == null) {
 				var bounds:Rectangle = new Rectangle();
-				__getRenderBounds(bounds, @:privateAccess Matrix.__identity);
+				__getBounds (bounds);
 
 				if (bounds.width <= 0 && bounds.height <= 0) {
 					throw 'Error creating a cached bitmap. The texture size is ${bounds.width}x${bounds.height}';
 				}
 
-				var matrix:Matrix = new Matrix();
-				matrix.translate(-bounds.x, -bounds.y);
-				__9SliceBitmap = new BitmapData (Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
-				__drawingBitmapData = true;
-				__9SliceBitmap.draw (this, matrix);
-				__drawingBitmapData = false;
+				if (__scale9Rect == null) {
+					__scale9Rect = __symbol.scalingGridRect.clone();
+					__scale9Rect.x -= bounds.x;
+					__scale9Rect.y -= bounds.y;
+				}
+
+				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
+				var graphics:Graphics = null;
+				
+				for(i in 0...__children.length)
+				{
+					var childGraphics = @:privateAccess getChildAt(i).__graphics;
+					if(childGraphics != null)
+					{
+						graphics = childGraphics;
+						break;
+					}
+				}
+				
+				if (graphics == null) {
+					throw "Cannot find graphics for 9 slice rendering";
+				}
+				
+				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
+
+				__9SliceBitmap = @:privateAccess graphics.__bitmap;
+
 		}
 	}
 
-	@:noCompletion private function drawScale9Bitmap(renderSession:RenderSession, bitmap:BitmapData, drawWidth:Float, drawHeight:Float, scale9Rect:Rectangle):Void {
+	@:noCompletion private function drawScale9Bitmap (renderSession:RenderSession):Void {
 
-		var matrix = new Matrix();
-		var cols = [0, scale9Rect.left, drawWidth - (bitmap.width - scale9Rect.right), drawWidth];
-		var rows = [0, scale9Rect.top, drawHeight - (bitmap.height - scale9Rect.bottom), drawHeight];
-		var us = [0, scale9Rect.left / bitmap.width, scale9Rect.right / bitmap.width, 1];
-		var vs = [0, scale9Rect.top / bitmap.height, scale9Rect.bottom/ bitmap.height, 1];
+		var bounds:Rectangle = new Rectangle();
+		__getBounds (bounds);
+
+		var bordersReservedWidth = __9SliceBitmap.width - __scale9Rect.width;
+		var bordersReservedHeight = __9SliceBitmap.height - __scale9Rect.height;
+		var bordersHorizontalScale:Float = 1.0;
+		var bordersVerticalScale:Float = 1.0;
+
+		if (width < bordersReservedWidth) {
+			bordersHorizontalScale = width / bordersReservedWidth;
+		}
+
+		if (height < bordersReservedHeight) {
+			bordersVerticalScale = height / bordersReservedHeight;
+		}
+
+		var rect = @:privateAccess Rectangle.__temp;
+		rect.left = bordersHorizontalScale * __scale9Rect.left;
+		rect.right = Math.max (rect.left, width - bordersHorizontalScale * (__9SliceBitmap.width - __scale9Rect.right) );
+		rect.top = bordersVerticalScale * __scale9Rect.top;
+		rect.bottom = Math.max (rect.top, height - bordersVerticalScale * (__9SliceBitmap.height - __scale9Rect.bottom) );
+
+		var renderToBitmapXScale = __9SliceBitmap.width / width;
+		var renderToBitmapYScale = __9SliceBitmap.height / height;
+		var cols = [0, rect.left * renderToBitmapXScale, rect.right * renderToBitmapXScale, __9SliceBitmap.width];
+		var rows = [0, rect.top * renderToBitmapYScale, rect.bottom * renderToBitmapYScale, __9SliceBitmap.height];
+		var us = [0, __scale9Rect.left / __9SliceBitmap.width, __scale9Rect.right / __9SliceBitmap.width, 1];
+		var vs = [0, __scale9Rect.top / __9SliceBitmap.height, __scale9Rect.bottom/ __9SliceBitmap.height, 1];
 		var uvs:TextureUvs = new TextureUvs();
 
-		var bitmapDataUvs = @:privateAccess bitmap.__uvData;
+		var bitmapDataUvs = @:privateAccess __9SliceBitmap.__uvData;
 		var u_scale = bitmapDataUvs.x1 - bitmapDataUvs.x0;
 		var v_scale = bitmapDataUvs.y2 - bitmapDataUvs.y0;
 
+		var matrix = new Matrix();
+
 		for(row in 0...3) {
+
 			for(col in 0...3) {
 
 				var sourceX = cols[col];
@@ -712,25 +759,26 @@ class MovieClip extends flash.display.MovieClip {
 				var w = cols[col+1] - cols[col];
 				var h = rows[row+1] - rows[row];
 
-				matrix.identity();
-				matrix.translate(sourceX + __worldTransform.tx, sourceY + __worldTransform.ty);
+				matrix.identity ();
+				matrix.translate (sourceX + bounds.x, sourceY + bounds.y);
+				matrix.concat (__renderTransform);
 
 				uvs.x0 = uvs.x3 = us[col] * u_scale;
 				uvs.x1 = uvs.x2 = us[col+1] * u_scale;
 				uvs.y0 = uvs.y1 = vs[row] * v_scale;
 				uvs.y2 = uvs.y3 = vs[row+1] * v_scale;
 
-				renderSession.spriteBatch.renderBitmapDataEx(__9SliceBitmap, w, h, uvs, true, matrix, __worldColorTransform, __worldColorTransform.alphaMultiplier, __blendMode, __shader, null);
+				renderSession.spriteBatch.renderBitmapDataEx (__9SliceBitmap, w, h, uvs, true, matrix, __worldColorTransform, __worldColorTransform.alphaMultiplier, __blendMode, __shader, null);
 
 			}
 		}
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (!__drawingBitmapData && __symbol.scalingGridRect != null) {
+		if (__symbol.scalingGridRect != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
-			drawScale9Bitmap(renderSession, __9SliceBitmap, width, height ,__symbol.scalingGridRect);
+			drawScale9Bitmap(renderSession);
 		}
 		else {
 			super.__renderGL (renderSession);
@@ -959,15 +1007,11 @@ class MovieClip extends flash.display.MovieClip {
 		addChild (displayObject);
 	}
 
-
 	@:noCompletion override private function __releaseResources(){
 
 		super.__releaseResources();
 
-		if(__9SliceBitmap != null ){
-			__9SliceBitmap.dispose();
-			__9SliceBitmap = null;
-		}
+		__9SliceBitmap = null;
 
 	}
 
