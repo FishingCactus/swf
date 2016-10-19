@@ -29,6 +29,7 @@ class DynamicTextField extends TextField {
 		
 		this.swf = swf;
 		this.symbol = symbol;
+		this.name = symbol.variableName;
 		
 		width = symbol.width;
 		height = symbol.height;
