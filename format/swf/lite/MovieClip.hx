@@ -865,7 +865,7 @@ class MovieClip extends flash.display.MovieClip {
 						displayObject.name = oldObject.name;
 						displayObject.transform.matrix = oldObject.transform.matrix;
 						displayObject.transform.colorTransform = oldObject.transform.colorTransform;
-						displayObject.filters = oldObject.filters;
+						displayObject.filters = oldObject.filters.map(function(bitmapFilter){ return bitmapFilter.clone(); });
 
 						if( clipDepth != null ) {
 							__maskData.set( displayObject, clipDepth );
@@ -920,9 +920,15 @@ class MovieClip extends flash.display.MovieClip {
 			var result = numChildren;
 			for( i in maskIndex ... numChildren ){
 				var sibling = getChildAt(i);
+				sibling.__clippedAt = null;
+			}
+			for( i in maskIndex ... numChildren ){
+				var sibling = getChildAt(i);
 				if( __SWFDepthData.get(sibling) > depthValue){
 					result = i;
 					break;
+				} else {
+					sibling.__clippedAt = maskIndex;
 				}
 			}
 
