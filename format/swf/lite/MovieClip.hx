@@ -289,10 +289,10 @@ class MovieClip extends flash.display.MovieClip {
 					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
-			
+
 			if(displayObject == null)
 			{
-					
+
 				if (Std.is (symbol, SpriteSymbol)) {
 
 					displayObject = new MovieClip (__swf, cast symbol);
@@ -695,7 +695,7 @@ class MovieClip extends flash.display.MovieClip {
 
 				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
 				var graphics:Graphics = null;
-				
+
 				for(i in 0...__children.length)
 				{
 					var childGraphics = @:privateAccess getChildAt(i).__graphics;
@@ -705,11 +705,11 @@ class MovieClip extends flash.display.MovieClip {
 						break;
 					}
 				}
-				
+
 				if (graphics == null) {
 					throw "Cannot find graphics for 9 slice rendering";
 				}
-				
+
 				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
 
 				__9SliceBitmap = @:privateAccess graphics.__bitmap;
