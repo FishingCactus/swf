@@ -70,6 +70,11 @@ class MovieClip extends flash.display.MovieClip {
 
 		super ();
 
+		if ( symbol == null ) {
+			symbol = new SpriteSymbol();
+			symbol.frames = [];
+		}
+
 		__swf = swf;
 		__symbol = symbol;
 
@@ -820,6 +825,10 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	@:noCompletion private function __renderFrame (index:Int):Bool {
+
+		if (__symbol.frames.length == 0) {
+			return false;
+		}
 
 		if (index == 0) {
 			frame0ChildrenUpdate();
