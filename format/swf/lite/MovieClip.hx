@@ -1001,6 +1001,51 @@ class MovieClip extends flash.display.MovieClip {
 
 	}
 
+	public function getNextHighestDepthExternal() : Int {
+		if ( numChildren > 0 ) {
+			return __SWFDepthData.get(getChildAt(numChildren-1)) - 0x3FFE;
+		}
+		return 0;
+	}
+
+	public function getDepth() : Int {
+		return cast( parent, MovieClip).__SWFDepthData.get(this);
+	}
+
+	public function addChildAtSwfDepthExternal(displayObject:DisplayObject, targetDepth:Int):Void {
+		__addChildAtSwfDepth(displayObject, targetDepth + 0x3FFF);
+	}
+
+	public function swapDepths(target: Dynamic) {
+		var object_to_swap : MovieClip = null;
+		var target_depth : Int;
+		if ( Std.is(target, Int) || Std.is(target, Float) ) {
+			target_depth = Std.int(target);
+			for( i in 0 ... numChildren ){
+				if( __SWFDepthData.get(getChildAt(i)) == target_depth){
+					object_to_swap = cast(getChildAt(i), MovieClip);
+
+					break;
+				}
+			}
+		} else if ( Std.is(target, MovieClip) ) {
+			object_to_swap = target;
+			target_depth = __SWFDepthData.get(target);
+		} else {
+			throw("Trying to swap depths with unknown type.. " + Type.getClassName(target));
+		}
+
+
+		var swf_parent = cast(parent, MovieClip);
+		var my_depth = getDepth();
+		if ( object_to_swap != null ) {
+			swf_parent.removeChild(object_to_swap);
+			swf_parent.addChildAtSwfDepthExternal(object_to_swap, my_depth);
+		}
+        swf_parent.removeChild(this);
+        swf_parent.addChildAtSwfDepthExternal(this, target_depth);
+    }
+
 	@:noCompletion private function __addChildAtSwfDepth(displayObject: DisplayObject, targetDepth:Int):Void{
 
 		__SWFDepthData.set(displayObject, targetDepth);
