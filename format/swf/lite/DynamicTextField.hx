@@ -12,6 +12,8 @@ import format.swf.lite.symbols.DynamicTextSymbol;
 import format.swf.lite.symbols.FontSymbol;
 import format.swf.lite.SWFLite;
 
+import openfl.display.Graphics;
+
 
 class DynamicTextField extends TextField {
 	
@@ -21,7 +23,7 @@ class DynamicTextField extends TextField {
 	private var glyphs:Array<Shape>;
 	private var swf:SWFLite;
 	private var _text:String;
-	
+	private var _variableName:String;
 	
 	public function new (swf:SWFLite, symbol:DynamicTextSymbol) {
 		
@@ -29,6 +31,8 @@ class DynamicTextField extends TextField {
 		
 		this.swf = swf;
 		this.symbol = symbol;
+
+		_variableName = symbol.variableName;
 		
 		width = symbol.width;
 		height = symbol.height;
@@ -140,5 +144,19 @@ class DynamicTextField extends TextField {
 		
 	}
 	
+	public override function __update (transformOnly:Bool, updateChildren:Bool, ?maskGraphics:Graphics = null):Void {
+		if ( _variableName != null && _variableName.length > 0 ) {
+			var local_parent = this.parent;
+			while ( local_parent != null ) {
+				if ( Reflect.hasField(local_parent, _variableName) ) {
+					// :TODO: Support html text in this case
+					text = Reflect.field(local_parent,_variableName);
+					break;
+				}
+				local_parent = local_parent.parent;
+			}
+		}
+		super.__update(transformOnly, updateChildren, maskGraphics);
+	}
 	
 }

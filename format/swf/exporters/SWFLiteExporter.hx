@@ -699,6 +699,7 @@ class SWFLiteExporter {
 		var symbol = new DynamicTextSymbol ();
 		
 		symbol.id = tag.characterId;
+		symbol.variableName = tag.variableName;
 		symbol.border = tag.border;
 		
 		if (tag.hasTextColor) {
