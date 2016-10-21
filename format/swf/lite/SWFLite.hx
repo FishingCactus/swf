@@ -20,6 +20,7 @@ import openfl.Assets;
 
 	public static var instances = new Map<String, SWFLite> ();
 	public static var fontAliases = new Map<String, String>();
+	public static var fontAliasesId = new Map<Int, String>();
 	public static var defaultInstance(get,null) : SWFLite;
 
 	public var classes : Map<String, Class<Dynamic>>;

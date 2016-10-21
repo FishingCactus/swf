@@ -780,7 +780,7 @@ class SWFLiteExporter {
 			
 			var textRecord = new StaticTextRecord ();
 			
-			if (record.hasFont) {
+			if (record.hasFont || font != null) {
 				
 				textRecord.fontID = record.fontId;
 				
