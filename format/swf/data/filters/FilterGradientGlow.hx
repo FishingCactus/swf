@@ -7,9 +7,7 @@ import format.swf.utils.StringUtils;
 
 import flash.filters.BitmapFilter;
 import flash.filters.BitmapFilterType;
-#if flash
-import flash.filters.GradientGlowFilter; // Not supported on native yet
-#end
+import flash.filters.GradientGlowFilter;
 
 class FilterGradientGlow extends Filter implements IFilter
 {
@@ -24,17 +22,17 @@ class FilterGradientGlow extends Filter implements IFilter
 	public var compositeSource:Bool;
 	public var onTop:Bool;
 	public var passes:Int;
-	
+
 	public var gradientColors (default, null):Array<Int>;
 	public var gradientRatios (default, null):Array<Int>;
 	public var filterName (get_filterName, null):String;
-	
+
 	public function new(id:Int) {
 		super(id);
 		gradientColors = new Array<Int>();
 		gradientRatios = new Array<Int>();
 	}
-	
+
 	override private function get_filter():BitmapFilter {
 		var gradientGlowColors:Array<Int> = [];
 		var gradientGlowAlphas:Array<Float> = [];
@@ -44,17 +42,13 @@ class FilterGradientGlow extends Filter implements IFilter
 			gradientGlowAlphas.push(ColorUtils.alpha(gradientColors[i]));
 			gradientGlowRatios.push(gradientRatios[i]);
 		}
-		#if flash
 		var filterType:BitmapFilterType;
-		#else
-		var filterType:String;
-		#end
+
 		if(onTop) {
 			filterType = BitmapFilterType.FULL;
 		} else {
 			filterType = (innerShadow) ? BitmapFilterType.INNER : BitmapFilterType.OUTER;
 		}
-		#if flash
 		return new GradientGlowFilter(
 			distance,
 			angle * 180 / Math.PI,
@@ -68,15 +62,8 @@ class FilterGradientGlow extends Filter implements IFilter
 			filterType,
 			knockout
 		);
-		#else
-		#if ((cpp || neko) && openfl_legacy)
-		return new BitmapFilter ("");
-		#else
-		return new BitmapFilter ();
-		#end
-		#end
 	}
-	
+
 	override private function get_type():FilterType {
 		var gradientGlowColors:Array<Int> = [];
 		var gradientGlowAlphas:Array<Float> = [];
@@ -86,9 +73,9 @@ class FilterGradientGlow extends Filter implements IFilter
 			gradientGlowAlphas.push(ColorUtils.alpha(gradientColors[i]));
 			gradientGlowRatios.push(gradientRatios[i]);
 		}
-		
+
 		var filterType:BitmapFilterType;
-		
+
 		if(onTop) {
 			filterType = BitmapFilterType.FULL;
 		} else {
@@ -108,7 +95,7 @@ class FilterGradientGlow extends Filter implements IFilter
 			knockout
 			);
 	}
-	
+
 	override public function parse(data:SWFData):Void {
 		numColors = data.readUI8();
 		var i:Int;
@@ -130,7 +117,7 @@ class FilterGradientGlow extends Filter implements IFilter
 		onTop = ((flags & 0x10) != 0);
 		passes = flags & 0x0f;
 	}
-	
+
 	override public function publish(data:SWFData):Void {
 		data.writeUI8(numColors);
 		var i:Int;
@@ -152,7 +139,7 @@ class FilterGradientGlow extends Filter implements IFilter
 		if(onTop) { flags |= 0x10; }
 		data.writeUI8(flags);
 	}
-	
+
 	override public function clone():IFilter {
 		var filter:FilterGradientGlow = new FilterGradientGlow(id);
 		filter.numColors = numColors;
@@ -175,7 +162,7 @@ class FilterGradientGlow extends Filter implements IFilter
 		filter.onTop = onTop;
 		return filter;
 	}
-	
+
 	override public function toString(indent:Int = 0):String {
 		var i:Int;
 		var str:String = "[" + filterName + "] " +
@@ -207,6 +194,6 @@ class FilterGradientGlow extends Filter implements IFilter
 		}
 		return str;
 	}
-	
+
 	private function get_filterName():String { return "GradientGlowFilter"; }
 }

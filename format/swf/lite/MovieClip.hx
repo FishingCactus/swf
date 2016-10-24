@@ -53,7 +53,6 @@ class MovieClip extends flash.display.MovieClip {
 	@:noCompletion private var __symbol:SpriteSymbol;
 	@:noCompletion private var __timeElapsed:Int;
 	@:noCompletion private var __zeroSymbol:Int;
-	@:noCompletion private var __drawingBitmapData:Bool;
 	@:noCompletion private var __targetFrame:Null<Int>;
 
 	#if flash
@@ -79,7 +78,6 @@ class MovieClip extends flash.display.MovieClip {
 		__lastUpdate = 1;
 		__objects = new Map ();
 		__zeroSymbol = -1;
-		__drawingBitmapData = false;
 
 		__currentFrame = 1;
 		__totalFrames = __symbol.frames.length;
@@ -275,55 +273,64 @@ class MovieClip extends flash.display.MovieClip {
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
 
-			if( __swf.classes_id.exists( object.symbol ))
+			if(displayObject == null && __swf.classes_id.exists( object.symbol ))
 			{
 				var _class: Class<Dynamic> = __swf.classes_id.get(object.symbol);
 
 				if( _class != null )
 				{
-					return Type.createInstance( _class, [ __swf, symbol]);
+					displayObject = Type.createInstance( _class, [ __swf, symbol]);
 				}
 			}
 
-			if (Std.is (symbol, SpriteSymbol)) {
+			if(displayObject == null)
+			{
 
-				displayObject = new MovieClip (__swf, cast symbol);
+				if (Std.is (symbol, SpriteSymbol)) {
 
-			} else if (Std.is (symbol, ShapeSymbol)) {
+					displayObject = new MovieClip (__swf, cast symbol);
 
-				displayObject = __createShape (cast symbol);
+				} else if (Std.is (symbol, ShapeSymbol)) {
 
-			} else if (Std.is (symbol, MorphShapeSymbol)) {
+					displayObject = __createShape (cast symbol);
 
-				displayObject = __createMorphShape (cast symbol);
+				} else if (Std.is (symbol, MorphShapeSymbol)) {
 
-			} else if (Std.is (symbol, BitmapSymbol)) {
+					displayObject = __createMorphShape (cast symbol);
 
-				displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
+				} else if (Std.is (symbol, BitmapSymbol)) {
 
-			} else if (Std.is (symbol, DynamicTextSymbol)) {
+					displayObject = new Bitmap (__getBitmap (cast symbol), PixelSnapping.AUTO, true);
 
-				displayObject = new DynamicTextField (__swf, cast symbol);
+				} else if (Std.is (symbol, DynamicTextSymbol)) {
 
-			} else if (Std.is (symbol, StaticTextSymbol)) {
+					displayObject = new DynamicTextField (__swf, cast symbol);
 
-				displayObject = new StaticTextField (__swf, cast symbol);
+				} else if (Std.is (symbol, StaticTextSymbol)) {
 
-			} else if (Std.is (symbol, ButtonSymbol)) {
+					displayObject = new StaticTextField (__swf, cast symbol);
 
-				displayObject = new SimpleButton (__swf, cast symbol);
+                } else if (Std.is (symbol, ButtonSymbol)) {
 
-			} else if (Std.is (symbol, SimpleSpriteSymbol)) {
+					displayObject = new SimpleButton (__swf, cast symbol);
 
-				displayObject = new SimpleSprite (__swf, cast symbol);
+			    } else if (Std.is (symbol, SimpleSpriteSymbol)) {
 
+				    displayObject = new SimpleSprite (__swf, cast symbol);
+                }
 			}
 
 			Reflect.setField( displayObject, "symbolId", symbol.id );
+
+			if (object.name != null) {
+
+				displayObject.name = object.name;
+
+			}
 
 		}
 
@@ -588,12 +595,6 @@ class MovieClip extends flash.display.MovieClip {
 
 	@:noCompletion private function __placeObject (displayObject:DisplayObject, frameObject:FrameObject):Void {
 
-		if (frameObject.name != null) {
-
-			displayObject.name = frameObject.name;
-
-		}
-
 		if (frameObject.matrix != null) {
 
 			displayObject.transform.matrix = frameObject.matrix;
@@ -659,6 +660,10 @@ class MovieClip extends flash.display.MovieClip {
 
 						filters.push (new GradientGlowFilter (distance, angle, colors, alphas, ratios, blurX, blurY, strength, quality, type, knockout));
 
+					case BevelFilter(distance, angle, highlightColor, highlightAlpha, shadowColor, shadowAlpha, blurX, blurY, strength, quality, type, knockout):
+
+						filters.push (new BevelFilter(distance, angle, highlightColor, highlightAlpha, shadowColor, shadowAlpha, blurX, blurY, strength, quality, type, knockout));
+
 				}
 
 			}
@@ -692,12 +697,27 @@ class MovieClip extends flash.display.MovieClip {
 					__scale9Rect.y -= bounds.y;
 				}
 
-				var matrix:Matrix = new Matrix();
-				matrix.translate (-bounds.x, -bounds.y);
-				__9SliceBitmap = new BitmapData (Math.ceil (bounds.width), Math.ceil (bounds.height), true, 0);
-				__drawingBitmapData = true;
-				__9SliceBitmap.draw (this, matrix);
-				__drawingBitmapData = false;
+				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
+				var graphics:Graphics = null;
+
+				for(i in 0...__children.length)
+				{
+					var childGraphics = @:privateAccess getChildAt(i).__graphics;
+					if(childGraphics != null)
+					{
+						graphics = childGraphics;
+						break;
+					}
+				}
+
+				if (graphics == null) {
+					throw "Cannot find graphics for 9 slice rendering";
+				}
+
+				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
+
+				__9SliceBitmap = @:privateAccess graphics.__bitmap;
+
 		}
 	}
 
@@ -764,7 +784,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (!__drawingBitmapData && __symbol.scalingGridRect != null) {
+		if (__symbol.scalingGridRect != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
 			drawScale9Bitmap(renderSession);
@@ -854,7 +874,7 @@ class MovieClip extends flash.display.MovieClip {
 						displayObject.name = oldObject.name;
 						displayObject.transform.matrix = oldObject.transform.matrix;
 						displayObject.transform.colorTransform = oldObject.transform.colorTransform;
-						displayObject.filters = oldObject.filters;
+						displayObject.filters = oldObject.filters.map(function(bitmapFilter){ return bitmapFilter.clone(); });
 
 						if( clipDepth != null ) {
 							__maskData.set( displayObject, clipDepth );
@@ -909,9 +929,15 @@ class MovieClip extends flash.display.MovieClip {
 			var result = numChildren;
 			for( i in maskIndex ... numChildren ){
 				var sibling = getChildAt(i);
+				sibling.__clippedAt = null;
+			}
+			for( i in maskIndex ... numChildren ){
+				var sibling = getChildAt(i);
 				if( __SWFDepthData.get(sibling) > depthValue){
 					result = i;
 					break;
+				} else {
+					sibling.__clippedAt = maskIndex;
 				}
 			}
 
@@ -996,15 +1022,11 @@ class MovieClip extends flash.display.MovieClip {
 		addChild (displayObject);
 	}
 
-
 	@:noCompletion override private function __releaseResources(){
 
 		super.__releaseResources();
 
-		if(__9SliceBitmap != null ){
-			__9SliceBitmap.dispose();
-			__9SliceBitmap = null;
-		}
+		__9SliceBitmap = null;
 
 	}
 

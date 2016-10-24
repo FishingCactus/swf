@@ -1,11 +1,10 @@
 ﻿package format.swf.data.filters;
 
+import format.swf.exporters.core.FilterType;
 import format.swf.SWFData;
 import format.swf.utils.ColorUtils;
 
-#if flash
 import flash.filters.BevelFilter;
-#end
 import flash.filters.BitmapFilter;
 import flash.filters.BitmapFilterType;
 
@@ -23,23 +22,40 @@ class FilterBevel extends Filter implements IFilter
 	public var compositeSource:Bool;
 	public var onTop:Bool;
 	public var passes:Int;
-	
+
 	public function new(id:Int) {
 		super(id);
 	}
-	
-	override private function get_filter():BitmapFilter {
-		#if flash
+
+	override private function get_type():FilterType {
 		var filterType:BitmapFilterType;
-		#else
-		var filterType:String;
-		#end
 		if(onTop) {
 			filterType = BitmapFilterType.FULL;
 		} else {
 			filterType = (innerShadow) ? BitmapFilterType.INNER : BitmapFilterType.OUTER;
 		}
-		#if flash
+		return BevelFilter(
+			distance,
+			angle * 180 / Math.PI,
+			ColorUtils.rgb(highlightColor),
+			ColorUtils.alpha(highlightColor),
+			ColorUtils.rgb(shadowColor),
+			ColorUtils.alpha(shadowColor),
+			blurX,
+			blurY,
+			strength,
+			passes,
+			filterType,
+			knockout
+		);	}
+
+	override private function get_filter():BitmapFilter {
+		var filterType:BitmapFilterType;
+		if(onTop) {
+			filterType = BitmapFilterType.FULL;
+		} else {
+			filterType = (innerShadow) ? BitmapFilterType.INNER : BitmapFilterType.OUTER;
+		}
 		return new BevelFilter(
 			distance,
 			angle * 180 / Math.PI,
@@ -54,15 +70,8 @@ class FilterBevel extends Filter implements IFilter
 			filterType,
 			knockout
 		);
-		#else
-		#if ((cpp || neko) && openfl_legacy)
-		return new BitmapFilter ("");
-		#else
-		return new BitmapFilter ();
-		#end
-		#end
 	}
-	
+
 	override public function parse(data:SWFData):Void {
 		shadowColor = data.readRGBA();
 		highlightColor = data.readRGBA();
@@ -78,7 +87,7 @@ class FilterBevel extends Filter implements IFilter
 		onTop = ((flags & 0x10) != 0);
 		passes = flags & 0x0f;
 	}
-	
+
 	override public function publish(data:SWFData):Void {
 		data.writeRGBA(shadowColor);
 		data.writeRGBA(highlightColor);
@@ -94,7 +103,7 @@ class FilterBevel extends Filter implements IFilter
 		if(onTop) { flags |= 0x10; }
 		data.writeUI8(flags);
 	}
-	
+
 	override public function clone():IFilter {
 		var filter:FilterBevel = new FilterBevel(id);
 		filter.shadowColor = shadowColor;
@@ -111,7 +120,7 @@ class FilterBevel extends Filter implements IFilter
 		filter.onTop = onTop;
 		return filter;
 	}
-	
+
 	override public function toString(indent:Int = 0):String {
 		var str:String = "[BevelFilter] " +
 			"ShadowColor: " + ColorUtils.rgbToString(shadowColor) + ", " +
