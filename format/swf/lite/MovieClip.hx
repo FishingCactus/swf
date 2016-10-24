@@ -702,11 +702,19 @@ class MovieClip extends flash.display.MovieClip {
 
 				for(i in 0...__children.length)
 				{
-					var childGraphics = @:privateAccess getChildAt(i).__graphics;
+					var child = getChildAt(i);
+					var childGraphics = @:privateAccess child.__graphics;
 					if(childGraphics != null)
 					{
 						graphics = childGraphics;
 						break;
+					}
+
+					if(Std.is(child, SimpleSprite))
+					{
+						var simpleSprite:SimpleSprite = cast child;
+						__9SliceBitmap = cast(simpleSprite.getChildAt(0), Bitmap).bitmapData;
+						return;
 					}
 				}
 
