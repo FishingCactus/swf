@@ -328,10 +328,9 @@ class MovieClip extends flash.display.MovieClip {
 
 					displayObject = new SimpleButton (__swf, cast symbol);
 
-			} else if (Std.is (symbol, SimpleSpriteSymbol)) {
+				} else if (Std.is (symbol, SimpleSpriteSymbol)) {
 
-				displayObject = new SimpleSprite (__swf, cast symbol);
-
+					displayObject = new SimpleSprite (__swf, cast symbol);
 				}
 			}
 
@@ -736,13 +735,6 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	@:noCompletion private function drawScale9Bitmap (renderSession:RenderSession):Void {
-
-		if (__cacheAsBitmap) {
-			__isCachingAsBitmap = true;
-			__cacheGL(renderSession);
-			__isCachingAsBitmap = false;
-			return;
-		}
 
 		var bounds:Rectangle = new Rectangle();
 		__getBounds (bounds);
