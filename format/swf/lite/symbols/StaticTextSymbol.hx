@@ -2,12 +2,14 @@ package format.swf.lite.symbols;
 
 
 import flash.geom.Matrix;
+import flash.geom.Rectangle;
 
 
 class StaticTextSymbol extends SWFSymbol {
 	
 	
 	public var matrix:Matrix;
+	public var bounds:Rectangle;
 	public var records:Array<StaticTextRecord>;
 	public var shapeIsScaled : Bool;
 	

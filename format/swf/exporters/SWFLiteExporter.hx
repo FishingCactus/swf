@@ -488,6 +488,7 @@ class SWFLiteExporter {
 		tag.export (handler);
 		
 		symbol.commands = handler.commands;
+		symbol.bounds = tag.shapeBounds.rect;
 		
 		for (command in handler.commands) {
 			
@@ -839,6 +840,7 @@ class SWFLiteExporter {
 		matrix.ty *= (1 / 20);
 		
 		symbol.matrix = matrix;
+		symbol.bounds = tag.textBounds.rect;
 		symbol.shapeIsScaled = fontIsScaled;
 		
 		swfLite.symbols.set (symbol.id, symbol);
