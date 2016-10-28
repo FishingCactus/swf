@@ -700,32 +700,18 @@ class MovieClip extends flash.display.MovieClip {
 				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
 				var graphics:Graphics = null;
 
-				for(i in 0...__children.length)
-				{
-					var child = getChildAt(i);
-					var childGraphics = @:privateAccess child.__graphics;
-					if(childGraphics != null)
-					{
-						graphics = childGraphics;
-						break;
-					}
+				var bitmap = @:privateAccess BitmapData.__asRenderTexture ();
+				@:privateAccess bitmap.__resize (Math.ceil (bounds.width), Math.ceil (bounds.height));
 
-					if(Std.is(child, SimpleSprite))
-					{
-						var simpleSprite:SimpleSprite = cast child;
-						__9SliceBitmap = cast(simpleSprite.getChildAt(0), Bitmap).bitmapData;
-						return;
-					}
-				}
+				var previousTransform = __renderTransform;
 
-				if (graphics == null) {
-					throw "Cannot find graphics for 9 slice rendering";
-				}
+				__renderTransform = new Matrix();
+				__renderTransform.translate(-bounds.x, -bounds.y);
+				@:privateAccess bitmap.__drawGL(renderSession, this, __renderTransform);
 
-				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
+				__renderTransform = previousTransform;
 
-				__9SliceBitmap = @:privateAccess graphics.__bitmap;
-
+				__9SliceBitmap = bitmap;
 		}
 	}
 
@@ -792,7 +778,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (__symbol.scalingGridRect != null) {
+		if (__symbol.scalingGridRect != null && __9SliceBitmap != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
 			drawScale9Bitmap(renderSession);
