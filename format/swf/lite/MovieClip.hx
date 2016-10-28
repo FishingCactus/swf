@@ -715,6 +715,13 @@ class MovieClip extends flash.display.MovieClip {
 
 	@:noCompletion private function drawScale9Bitmap (renderSession:RenderSession):Void {
 
+		if (__cacheAsBitmap) {
+			__isCachingAsBitmap = true;
+			__cacheGL(renderSession);
+			__isCachingAsBitmap = false;
+			return;
+		}
+
 		var bounds:Rectangle = new Rectangle();
 		__getBounds (bounds);
 
