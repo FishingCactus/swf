@@ -1027,8 +1027,10 @@ class MovieClip extends flash.display.MovieClip {
 
 		super.__releaseResources();
 
-		__9SliceBitmap = null;
-
+		if( __9SliceBitmap != null ){
+			__9SliceBitmap.dispose();
+			__9SliceBitmap = null;
+		}
 	}
 
 	@:noCompletion private function __debugPrintChildren( parentSymbolID: Int = -1 ):Void {
