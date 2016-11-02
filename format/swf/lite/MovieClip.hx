@@ -672,7 +672,9 @@ class MovieClip extends flash.display.MovieClip {
 
 		}
 
-		Reflect.setField (this, displayObject.name, displayObject);
+		if (displayObject.name != null) {
+			Reflect.setField (this, displayObject.name, displayObject);
+		}
 
 	}
 
