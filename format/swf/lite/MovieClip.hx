@@ -349,8 +349,7 @@ class MovieClip extends flash.display.MovieClip {
 		@:privateAccess shape.__graphics = new Graphics();
 
 		if ( symbol.graphics != null && symbol.graphics.readOnly == true ) {
-			// :TODO: Use same graphics instead of a copy
-			@:privateAccess shape.__graphics.copyFrom( symbol.graphics );
+			@:privateAccess shape.__graphics.shallowCopyFrom( symbol.graphics );
 			return shape;
 		}
 		var graphics = shape.__graphics;
