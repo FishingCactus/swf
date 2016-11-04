@@ -695,8 +695,6 @@ class MovieClip extends flash.display.MovieClip {
 				}
 
 				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
-				var graphics:Graphics = null;
-
 
 				var bitmap = @:privateAccess BitmapData.__asRenderTexture ();
 				@:privateAccess bitmap.__resize (Math.ceil (bounds.width), Math.ceil (bounds.height));
@@ -738,7 +736,7 @@ class MovieClip extends flash.display.MovieClip {
 			bordersVerticalScale = height / bordersReservedHeight;
 		}
 
-		var rect = @:privateAccess Rectangle.__temp;
+		var rect = new openfl.geom.Rectangle();
 		rect.left = bordersHorizontalScale * __scale9Rect.left;
 		rect.right = Math.max (rect.left, width - bordersHorizontalScale * (__9SliceBitmap.width - __scale9Rect.right) );
 		rect.top = bordersVerticalScale * __scale9Rect.top;
