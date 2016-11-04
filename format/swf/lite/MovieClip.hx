@@ -581,8 +581,6 @@ class MovieClip extends flash.display.MovieClip {
 		}
 		else {
 
-			__targetFrame = __getFrame (frame);
-
 			return false;
 		}
 
