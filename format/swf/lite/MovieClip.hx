@@ -25,6 +25,7 @@ import openfl.display.FrameLabel;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+import openfl.geom.ColorTransform;
 import openfl._internal.renderer.RenderSession;
 
 #if openfl
@@ -819,6 +820,8 @@ class MovieClip extends flash.display.MovieClip {
 					}
 
 				__objects.remove (object_id);
+			} else {
+				__objects.get (object_id).transform.resetColorTransform();
 			}
 		}
 	}
