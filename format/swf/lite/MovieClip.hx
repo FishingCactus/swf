@@ -40,6 +40,7 @@ import lime.math.Vector2;
 import lime.Assets in LimeAssets;
 #end
 
+@:access(openfl.display.Graphics)
 
 class MovieClip extends flash.display.MovieClip {
 
@@ -242,6 +243,14 @@ class MovieClip extends flash.display.MovieClip {
 	}
 	#end
 
+	private override function get_graphics ():Graphics {
+
+		if ( __graphics != null && @:privateAccess __graphics.__owner == null ) {
+			throw "Not allowed!";
+		}
+		return super.get_graphics();
+
+	}
 
 	public function unflatten ():Void {
 
@@ -338,7 +347,13 @@ class MovieClip extends flash.display.MovieClip {
 	@:noCompletion private function __createShape (symbol:ShapeSymbol):Shape {
 
 		var shape = new Shape ();
-		var graphics = shape.graphics;
+		@:privateAccess shape.__graphics = new Graphics();
+
+		if ( symbol.graphics != null && symbol.graphics.readOnly == true ) {
+			@:privateAccess shape.__graphics.shallowCopyFrom( symbol.graphics );
+			return shape;
+		}
+		var graphics = shape.__graphics;
 
 		for (command in symbol.commands) {
 
@@ -403,6 +418,9 @@ class MovieClip extends flash.display.MovieClip {
 			}
 
 		}
+
+		graphics.readOnly = true;
+		symbol.graphics = shape.graphics;
 
 		return shape;
 
