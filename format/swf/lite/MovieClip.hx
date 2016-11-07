@@ -25,6 +25,7 @@ import openfl.display.FrameLabel;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+import openfl.geom.ColorTransform;
 import openfl._internal.renderer.RenderSession;
 
 #if openfl
@@ -326,7 +327,7 @@ class MovieClip extends flash.display.MovieClip {
 
 			Reflect.setField( displayObject, "symbolId", symbol.id );
 
-			if (object.name != null) {
+			if (object.name != "") {
 
 				displayObject.name = object.name;
 
@@ -586,8 +587,6 @@ class MovieClip extends flash.display.MovieClip {
 		}
 		else {
 
-			__targetFrame = __getFrame (frame);
-
 			return false;
 		}
 
@@ -660,6 +659,10 @@ class MovieClip extends flash.display.MovieClip {
 
 						filters.push (new GradientGlowFilter (distance, angle, colors, alphas, ratios, blurX, blurY, strength, quality, type, knockout));
 
+					case BevelFilter(distance, angle, highlightColor, highlightAlpha, shadowColor, shadowAlpha, blurX, blurY, strength, quality, type, knockout):
+
+						filters.push (new BevelFilter(distance, angle, highlightColor, highlightAlpha, shadowColor, shadowAlpha, blurX, blurY, strength, quality, type, knockout));
+
 				}
 
 			}
@@ -668,7 +671,9 @@ class MovieClip extends flash.display.MovieClip {
 
 		}
 
-		Reflect.setField (this, displayObject.name, displayObject);
+		if (displayObject.name != null) {
+			Reflect.setField (this, displayObject.name, displayObject);
+		}
 
 	}
 
@@ -694,30 +699,30 @@ class MovieClip extends flash.display.MovieClip {
 				}
 
 				var renderSession = @:privateAccess openfl.Lib.current.stage.__renderer.renderSession;
-				var graphics:Graphics = null;
 
-				for(i in 0...__children.length)
-				{
-					var childGraphics = @:privateAccess getChildAt(i).__graphics;
-					if(childGraphics != null)
-					{
-						graphics = childGraphics;
-						break;
-					}
-				}
+				var bitmap = @:privateAccess BitmapData.__asRenderTexture ();
+				@:privateAccess bitmap.__resize (Math.ceil (bounds.width), Math.ceil (bounds.height));
 
-				if (graphics == null) {
-					throw "Cannot find graphics for 9 slice rendering";
-				}
+				var previousTransform = __renderTransform;
 
-				openfl._internal.renderer.canvas.CanvasGraphics.render (graphics, renderSession, null);
+				__renderTransform = new Matrix();
+				__renderTransform.translate(-bounds.x, -bounds.y);
+				@:privateAccess bitmap.__drawGL(renderSession, this, __renderTransform);
 
-				__9SliceBitmap = @:privateAccess graphics.__bitmap;
+				__renderTransform = previousTransform;
 
+				__9SliceBitmap = bitmap;
 		}
 	}
 
 	@:noCompletion private function drawScale9Bitmap (renderSession:RenderSession):Void {
+
+		if (__cacheAsBitmap) {
+			__isCachingAsBitmap = true;
+			__cacheGL(renderSession);
+			__isCachingAsBitmap = false;
+			return;
+		}
 
 		var bounds:Rectangle = new Rectangle();
 		__getBounds (bounds);
@@ -735,7 +740,7 @@ class MovieClip extends flash.display.MovieClip {
 			bordersVerticalScale = height / bordersReservedHeight;
 		}
 
-		var rect = @:privateAccess Rectangle.__temp;
+		var rect = new openfl.geom.Rectangle();
 		rect.left = bordersHorizontalScale * __scale9Rect.left;
 		rect.right = Math.max (rect.left, width - bordersHorizontalScale * (__9SliceBitmap.width - __scale9Rect.right) );
 		rect.top = bordersVerticalScale * __scale9Rect.top;
@@ -780,7 +785,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (__symbol.scalingGridRect != null) {
+		if (__symbol.scalingGridRect != null && __9SliceBitmap != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
 			drawScale9Bitmap(renderSession);
@@ -820,6 +825,8 @@ class MovieClip extends flash.display.MovieClip {
 					}
 
 				__objects.remove (object_id);
+			} else {
+				__objects.get (object_id).transform.resetColorTransform();
 			}
 		}
 	}
@@ -874,7 +881,7 @@ class MovieClip extends flash.display.MovieClip {
 						displayObject.name = oldObject.name;
 						displayObject.transform.matrix = oldObject.transform.matrix;
 						displayObject.transform.colorTransform = oldObject.transform.colorTransform;
-						displayObject.filters = oldObject.filters;
+						displayObject.filters = oldObject.filters.map(function(bitmapFilter){ return bitmapFilter.clone(); });
 
 						if( clipDepth != null ) {
 							__maskData.set( displayObject, clipDepth );
@@ -929,9 +936,15 @@ class MovieClip extends flash.display.MovieClip {
 			var result = numChildren;
 			for( i in maskIndex ... numChildren ){
 				var sibling = getChildAt(i);
+				sibling.__clippedAt = null;
+			}
+			for( i in maskIndex ... numChildren ){
+				var sibling = getChildAt(i);
 				if( __SWFDepthData.get(sibling) > depthValue){
 					result = i;
 					break;
+				} else {
+					sibling.__clippedAt = maskIndex;
 				}
 			}
 
@@ -1065,8 +1078,10 @@ class MovieClip extends flash.display.MovieClip {
 
 		super.__releaseResources();
 
-		__9SliceBitmap = null;
-
+		if( __9SliceBitmap != null ){
+			__9SliceBitmap.dispose();
+			__9SliceBitmap = null;
+		}
 	}
 
 	@:noCompletion private function __debugPrintChildren( parentSymbolID: Int = -1 ):Void {

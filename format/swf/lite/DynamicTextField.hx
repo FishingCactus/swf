@@ -62,6 +62,10 @@ class DynamicTextField extends TextField {
 		}
 		format.font = SWFLite.fontAliases.get (symbol.fontName);
 		if (format.font == null) {
+			format.font = SWFLite.fontAliasesId.get (symbol.fontID);
+		}
+
+		if (format.font == null) {
 			format.font = symbol.fontName;
 		}
 
