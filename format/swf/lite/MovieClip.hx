@@ -621,8 +621,9 @@ class MovieClip extends flash.display.MovieClip {
 				var x = dynamicTextField.symbol.x;
 				var y = dynamicTextField.symbol.y;
 
-				displayObject.x += mat.a * x + mat.c * y;
-				displayObject.y += mat.b * x + mat.d * y #if flash + 4 #end;
+				// Math.round to prevent blurry fonts
+				displayObject.x = Math.round(displayObject.x + mat.a * x + mat.c * y);
+				displayObject.y = Math.round(displayObject.y + mat.b * x + mat.d * y #if flash + 4 #end);
 			}
 
 		}
