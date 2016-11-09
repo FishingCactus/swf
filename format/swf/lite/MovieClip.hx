@@ -331,7 +331,7 @@ class MovieClip extends flash.display.MovieClip {
 
 			Reflect.setField( displayObject, "symbolId", symbol.id );
 
-			if (object.name != "") {
+			if (object.name != null) {
 
 				displayObject.name = object.name;
 
