@@ -114,9 +114,10 @@ class Bitmap extends flash.display.Bitmap {
 					#end
 					
 				}
-				
-				bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, transparent);
-				
+
+				var bitmapData = new BitmapData (data.bitmapWidth, data.bitmapHeight, transparent);
+				this.bitmapData = bitmapData;
+
 				#if ((cpp || neko) && openfl_legacy)
 				bitmapData.setPixels (bitmapData.rect, buffer);
 				bitmapData.unmultiplyAlpha ();
@@ -168,9 +169,9 @@ class Bitmap extends flash.display.Bitmap {
 					#end
 					
 				}
-				
-				data.instance = bitmapData;
-				
+
+				data.instance = cast(bitmapData, BitmapData);
+
 				#end
 				
 			}

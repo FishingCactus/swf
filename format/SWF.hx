@@ -1,7 +1,7 @@
 package format;
 
 
-import flash.display.BitmapData;
+import flash.display.IBitmapData;
 import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.utils.ByteArray;
@@ -178,10 +178,10 @@ class SWF extends EventDispatcher {
 		return null;
 		
 	}
-	
-	
-	public function getBitmapData (className:String):BitmapData {
-		
+
+
+	public function getBitmapData (className:String):IBitmapData {
+
 		var symbol:Dynamic = null;
 		
 		if (className == "") {

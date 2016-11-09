@@ -3,6 +3,7 @@ package format.swf.instance;
 
 import flash.display.Bitmap;
 import flash.display.BitmapData;
+import flash.display.IBitmapData;
 import flash.display.DisplayObject;
 import flash.display.FrameLabel;
 import flash.display.Graphics;
@@ -56,7 +57,7 @@ class MovieClip extends flash.display.MovieClip {
 	
 	@:noCompletion public var scale9BitmapGrid(get, set):Rectangle;
 	@:noCompletion private var _scale9BitmapGrid:Rectangle;
-	@:noCompletion private var _scale9BitmapData:BitmapData;
+	@:noCompletion private var _scale9BitmapData:IBitmapData;
 	@:noCompletion private var _scale9ScaleX:Float = 1;
 	@:noCompletion private var _scale9ScaleY:Float = 1;
 	
@@ -677,7 +678,7 @@ class MovieClip extends flash.display.MovieClip {
 
 
 
-	@:noCompletion private function drawScale9Bitmap(bitmap : BitmapData, drawWidth:Float, drawHeight:Float, scale9Rect:Rectangle):Void {
+	@:noCompletion private function drawScale9Bitmap(bitmap : IBitmapData, drawWidth:Float, drawHeight:Float, scale9Rect:Rectangle):Void {
 
 		graphics.clear();
 
