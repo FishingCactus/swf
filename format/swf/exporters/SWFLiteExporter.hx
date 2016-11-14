@@ -20,6 +20,7 @@ import format.swf.lite.symbols.ShapeSymbol;
 import format.swf.lite.symbols.SpriteSymbol;
 import format.swf.lite.symbols.StaticTextSymbol;
 import format.swf.lite.symbols.SWFSymbol;
+import format.swf.lite.symbols.SimpleSpriteSymbol;
 import format.swf.lite.timeline.Frame;
 import format.swf.lite.timeline.FrameObject;
 import format.swf.lite.timeline.FrameObjectType;
@@ -479,24 +480,24 @@ class SWFLiteExporter {
 	}
 	
 	
-	private function addShape (tag:TagDefineShape):ShapeSymbol {
+	private function addShape (tag:TagDefineShape):SWFSymbol {
 		
-		var symbol = new ShapeSymbol ();
-		symbol.id = tag.characterId;
+		var foundBitmapID = null;
+		var foundMatrix = null;
 		
 		var handler = new ShapeCommandExporter ();
 		tag.export (handler);
 		
-		symbol.commands = handler.commands;
-		symbol.bounds = tag.shapeBounds.rect;
 		
 		for (command in handler.commands) {
 			
 			switch (command) {
 				
-				case BeginBitmapFill (bitmapID, _, _, _):
+				case BeginBitmapFill (bitmapID, matrix, _, _):
 					
 					processTag (cast data.getCharacter (bitmapID));
+					foundBitmapID = bitmapID;
+					foundMatrix = matrix;
 				
 				default:
 				
@@ -504,6 +505,23 @@ class SWFLiteExporter {
 			
 		}
 		
+		if(isSimpleSprite(handler.commands)) {
+			var symbol = new SimpleSpriteSymbol ();
+			symbol.id = tag.characterId;
+			symbol.matrix = foundMatrix;
+			symbol.bitmapID = foundBitmapID;
+			symbol.bounds = tag.shapeBounds.rect;
+
+			swfLite.symbols.set (symbol.id, symbol);
+
+			return symbol;
+		}
+
+		var symbol = new ShapeSymbol ();
+		symbol.id = tag.characterId;
+		symbol.commands = handler.commands;
+		symbol.bounds = tag.shapeBounds.rect;
+
 		swfLite.symbols.set (symbol.id, symbol);
 		
 		return symbol;
@@ -913,7 +931,57 @@ class SWFLiteExporter {
 		
 	}
 	
+	private function isSimpleSprite(commands:Array<ShapeCommand>)
+	{
+		var currentX = 0.0;
+		var currentY = 0.0;
+		var lineCount = 0;
+		var isBitmap = false;
 	
+		for (command in commands)
+		{
+			switch (command)
+			{
+				case BeginFill (color, alpha):
+					return false;
+
+				case BeginBitmapFill (bitmapID, matrix, repeat, smooth):
+					isBitmap = true;
+
+				case BeginGradientFill (fillType, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio):
+					return false;
+
+				case CurveTo (controlX, controlY, anchorX, anchorY):
+					return false;
+
+				case EndFill:
+
+				case LineStyle (thickness, color, alpha, pixelHinting, scaleMode, caps, joints, miterLimit):
+
+				case LineTo (x, y):
+					if(x == currentX || y == currentY)
+					{
+						currentX = x;
+						currentY = y;
+						++lineCount;
+
+						if(lineCount > 4) {
+							return false;
+						}
+					}
+					else
+					{
+						return false;
+					}
+
+				case MoveTo (x, y):
+					currentX = x;
+					currentY = y;
+			}
+		}
+
+		return lineCount == 4 && isBitmap;
+	}
 }
 
 
