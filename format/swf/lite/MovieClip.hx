@@ -1022,14 +1022,14 @@ class MovieClip extends flash.display.MovieClip {
 
 #if as2_depth_accessors
 	public function getNextHighestDepthExternal() : Int {
-		if ( numChildren > 0 ) {
+		if (numChildren > 0) {
 			return __SWFDepthData.get(getChildAt(numChildren-1)) - 0x3FFE;
 		}
 		return 0;
 	}
 
 	public function getDepth() : Int {
-		return cast( parent, MovieClip).__SWFDepthData.get(this);
+		return cast(parent, MovieClip).__SWFDepthData.get(this);
 	}
 
 	public function addChildAtSwfDepthExternal(displayObject:DisplayObject, targetDepth:Int):Void {
@@ -1037,13 +1037,13 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public function swapDepths(target: Dynamic) {
-		var object_to_swap : MovieClip = null;
+		var object_to_swap : DisplayObject = null;
 		var target_depth : Int;
 		if ( Std.is(target, Int) || Std.is(target, Float) ) {
 			target_depth = Std.int(target);
 			for( i in 0 ... numChildren ){
 				if( __SWFDepthData.get(getChildAt(i)) == target_depth){
-					object_to_swap = cast(getChildAt(i), MovieClip);
+					object_to_swap = getChildAt(i);
 
 					break;
 				}
