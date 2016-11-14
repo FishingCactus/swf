@@ -1048,7 +1048,7 @@ class MovieClip extends flash.display.MovieClip {
 					break;
 				}
 			}
-		} else if ( Std.is(target, MovieClip) ) {
+		} else if ( Std.is(target, DisplayObject) ) {
 			object_to_swap = target;
 			target_depth = __SWFDepthData.get(target);
 		} else {
