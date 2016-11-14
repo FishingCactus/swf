@@ -816,12 +816,16 @@ class MovieClip extends flash.display.MovieClip {
 		for( object_id in __objects.keys() ){
 
 			var remove:Bool = true;
+			var resetColorTransform:Bool = true;
 
 			for (frameObject in frame.objects){
 
 					if( frameObject.id == object_id ){
 
 							remove = frameObject.symbol != Reflect.field( __objects.get( object_id ), "symbolId" );
+
+							resetColorTransform = !remove && (frameObject.colorTransform == null);
+
 							break;
 					}
 			}
@@ -840,7 +844,9 @@ class MovieClip extends flash.display.MovieClip {
 
 				__objects.remove (object_id);
 			} else {
-				__objects.get (object_id).transform.resetColorTransform();
+				if(resetColorTransform) {
+					__objects.get (object_id).transform.resetColorTransform();
+				}
 			}
 		}
 	}
