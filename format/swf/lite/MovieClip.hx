@@ -7,6 +7,7 @@ import flash.display.DisplayObject;
 import flash.display.Graphics;
 import flash.display.PixelSnapping;
 import flash.display.Shape;
+import format.swf.lite.SimpleSprite;
 import flash.events.Event;
 import flash.filters.*;
 import flash.Lib;
@@ -17,6 +18,7 @@ import format.swf.lite.symbols.ShapeSymbol;
 import format.swf.lite.symbols.MorphShapeSymbol;
 import format.swf.lite.symbols.SpriteSymbol;
 import format.swf.lite.symbols.StaticTextSymbol;
+import format.swf.lite.symbols.SimpleSpriteSymbol;
 import format.swf.lite.timeline.FrameObject;
 import format.swf.lite.timeline.FrameObjectType;
 import format.swf.lite.SWFLite;
@@ -326,6 +328,9 @@ class MovieClip extends flash.display.MovieClip {
 
 					displayObject = new SimpleButton (__swf, cast symbol);
 
+				} else if (Std.is (symbol, SimpleSpriteSymbol)) {
+
+					displayObject = new SimpleSprite (__swf, cast symbol);
 				}
 			}
 
