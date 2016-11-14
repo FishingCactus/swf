@@ -6,7 +6,7 @@ package format.swf.lite.symbols;
 
 class DynamicTextSymbol extends SWFSymbol {
 	
-	
+	public var variableName:String;
 	public var align:/*TextFormatAlign*/String;
 	public var border:Bool;
 	public var color:Null<Int>;
