@@ -925,4 +925,3 @@ enum BitmapType {
 	JPEG;
 
 }
->>>>>>> develop
