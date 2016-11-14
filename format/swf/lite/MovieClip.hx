@@ -71,11 +71,6 @@ class MovieClip extends flash.display.MovieClip {
 
 		super ();
 
-		if ( symbol == null ) {
-			symbol = new SpriteSymbol();
-			symbol.frames = [];
-		}
-
 		__swf = swf;
 		__symbol = symbol;
 
@@ -84,25 +79,31 @@ class MovieClip extends flash.display.MovieClip {
 		__zeroSymbol = -1;
 
 		__currentFrame = 1;
-		__totalFrames = __symbol.frames.length;
+		if ( __symbol != null ) {
+			__totalFrames = __symbol.frames.length;
+		} else {
+			__totalFrames = 0;
+		}
 
 		__SWFDepthData = new Map();
 		__maskData = new Map();
 
 		__currentLabels = [];
 
-		for (i in 0...__symbol.frames.length) {
+		if ( __symbol != null ) {
+			for (i in 0...__symbol.frames.length) {
 
-			if (__symbol.frames[i].label != null) {
+				if (__symbol.frames[i].label != null) {
 
-				__currentLabels.push (new FrameLabel (__symbol.frames[i].label, i + 1));
+					__currentLabels.push (new FrameLabel (__symbol.frames[i].label, i + 1));
+
+				}
 
 			}
 
-		}
-
-		if (__symbol.scalingGridRect != null ) {
-			__useSeparateRenderScaleTransform = false;
+			if (__symbol.scalingGridRect != null ) {
+				__useSeparateRenderScaleTransform = false;
+			}
 		}
 
 		#if (!flash && openfl && !openfl_legacy)
@@ -541,16 +542,17 @@ class MovieClip extends flash.display.MovieClip {
 
 			var label:String = cast frame;
 
-			for (i in 0...__symbol.frames.length) {
+			if ( __symbol != null ) {
+				for (i in 0...__symbol.frames.length) {
 
-				if (__symbol.frames[i].label == label) {
+					if (__symbol.frames[i].label == label) {
 
-					index = i + 1;
-					break;
+						index = i + 1;
+						break;
+					}
+
 				}
-
 			}
-
 		}
 
 		if(index < 1){
@@ -684,7 +686,7 @@ class MovieClip extends flash.display.MovieClip {
 		// :TODO: should be in a prerender phase
 		// :TODO: use dirty flag if need to update __9SliceBitmap
 
-		if (__symbol.scalingGridRect != null && __9SliceBitmap == null) {
+		if (__symbol != null && __symbol.scalingGridRect != null && __9SliceBitmap == null) {
 				var bounds:Rectangle = new Rectangle();
 				__getBounds (bounds);
 
@@ -785,7 +787,7 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	public override function __renderGL (renderSession:RenderSession):Void {
-		if (__symbol.scalingGridRect != null && __9SliceBitmap != null) {
+		if (__symbol != null && __symbol.scalingGridRect != null && __9SliceBitmap != null) {
 			if (!__renderable || __worldAlpha <= 0) return;
 
 			drawScale9Bitmap(renderSession);
@@ -796,6 +798,10 @@ class MovieClip extends flash.display.MovieClip {
 	}
 
 	private function frame0ChildrenUpdate():Void {
+
+		if ( __symbol == null ) {
+			return;
+		}
 
 		var frame = __symbol.frames[0];
 
@@ -833,7 +839,7 @@ class MovieClip extends flash.display.MovieClip {
 
 	@:noCompletion private function __renderFrame (index:Int):Bool {
 
-		if (__symbol.frames.length == 0) {
+		if (__symbol == null || __symbol.frames.length == 0) {
 			return false;
 		}
 
@@ -1087,6 +1093,9 @@ class MovieClip extends flash.display.MovieClip {
 
 	@:noCompletion private function __debugPrintChildren( parentSymbolID: Int = -1 ):Void {
 
+		if ( __symbol == null ) {
+			return;
+		}
 		var print :Bool = false;
 		if(parentSymbolID < 0 || parentSymbolID == __symbol.id){
 			print = true;
